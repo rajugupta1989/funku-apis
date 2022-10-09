@@ -4,6 +4,7 @@ from property.models import (
     UserProperty,
     PropertyAvailableFacilities,
     PropertySocialDetail,
+    FlashDealDetail,
 )
 
 
@@ -65,3 +66,9 @@ class PropertySocialDetailSerializer(serializers.ModelSerializer):
             "promoter": promoter,
         })
         return serializer
+
+
+class FlashDealDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FlashDealDetail
+        fields = "__all__"

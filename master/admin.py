@@ -1,5 +1,6 @@
 from django.contrib import admin
 from master.models import (
+    BrandType,
     masterAvatarProfile,
     gender,
     music_type,
@@ -14,6 +15,9 @@ from master.models import (
     ArtistType,
     Language,
     AdditionalFeature,
+    DealTermsAndConditions,
+    FlashDealFor,
+    BrandType
 )
 
 # Register your models here.
@@ -33,3 +37,6 @@ admin.site.register(PropertyFacilities)
 admin.site.register(ArtistType)
 admin.site.register(Language)
 admin.site.register(AdditionalFeature)
+admin.site.register(DealTermsAndConditions)
+admin.site.register(FlashDealFor)
+admin.site.register(BrandType)

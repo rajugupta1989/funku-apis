@@ -18,4 +18,7 @@ urlpatterns = [
     path(r"artist_type/", views.ArtistTypeAPIView.as_view(), name="artist_type"),
     path(r"language/", views.LanguageAPIView.as_view(), name="language"),
     path(r"additional_feature/", views.AdditionalFeatureAPIView.as_view(), name="additional_feature"),
+    path(r"deal_terms_and_conditions/", views.DealTermsAndConditionsAPIView.as_view(), name="deal_tearms_and_conditions"),
+    path(r"flash_deal_for/", views.FlashDealForAPIView.as_view(), name="flash_deal_for"),
+     path(r"brand_type/", views.BrandTypeAPIView.as_view(), name="brand_type"),
 ]

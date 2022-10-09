@@ -1,7 +1,18 @@
+from unicodedata import category
 from django.db import models
 from common.abstract_model import CommonAbstractModel
 from account.models import User, FileRepo
-from master.models import Country, State, City, PaymentMethod, PropertyFacilities
+from master.models import (
+    Country,
+    State,
+    City,
+    PaymentMethod,
+    PropertyFacilities,
+    FlashDealFor,
+    DealTermsAndConditions,
+    drink_type,
+    BrandType,
+)
 
 
 class UserPropertyThumb(CommonAbstractModel):
@@ -53,3 +64,24 @@ class PropertySocialDetail(CommonAbstractModel):
     facebook = models.CharField(max_length=100, blank=True, null=True)
     twitter = models.CharField(max_length=100, blank=True, null=True)
     promoter = models.ManyToManyField(User, blank=True, related_name="promoter")
+    
+
+
+
+class FlashDealDetail(CommonAbstractModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    deal_name = models.CharField(max_length=100,blank=True, null=True)
+    deal_for = models.ForeignKey(
+        FlashDealFor, on_delete=models.CASCADE, blank=True, null=True
+    )
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    duration = models.CharField(max_length=100, null=True, blank=True)
+    terms_conditions = models.ManyToManyField(DealTermsAndConditions, blank=True)
+    category = models.ForeignKey(
+        drink_type, on_delete=models.CASCADE, blank=True, null=True
+    )
+    brand = models.ForeignKey(
+        BrandType, on_delete=models.CASCADE, blank=True, null=True
+    )

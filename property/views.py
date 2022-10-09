@@ -347,3 +347,108 @@ class UpdateAvailableFacilitiesAPIView(generics.RetrieveUpdateAPIView):
         except Exception as e:
             error = {"status": False, "message": "Something Went Wrong","error": str(e)}
             return Response(error, status=status.HTTP_200_OK)
+
+
+class AddFlashDealAPIView(generics.ListCreateAPIView):
+    """
+    Add pflash deal
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = FlashDealDetail.objects.all()
+    serializer_class = FlashDealDetailSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            request.data["user"] = user.id
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid(raise_exception=False):
+                serializer.save()
+                return Response(
+                    {"status": True, "message":"Successfully created","results": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = self.request.GET.get('user_id', None)
+            instance = self.queryset.filter(user_id=user_id)
+            serializer = self.serializer_class(instance, many=True)
+            dict = {'status': True, 'results': serializer.data}
+            return Response(dict, status=status.HTTP_200_OK)
+        except Exception as e:
+            dict = {"status": False,
+                    "message": "something went wrong", "error": str(e)}
+            return Response(dict, status=status.HTTP_200_OK)
+
+
+class UpdateFlashDealAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Update flash deal
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = FlashDealDetail.objects.all()
+    serializer_class = FlashDealDetailSerializer
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            request.data["user"] = user.id
+            deal = self.queryset.get(pk=kwargs["pk"])
+            serializer = self.serializer_class(instance=deal, data=request.data)
+            if serializer.is_valid(raise_exception=False):
+                serializer.save()
+                return Response(
+                    {"status": True,"message":"Successfully Updated", "results": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            deal = self.queryset.get(pk=kwargs["pk"])
+            response = self.serializer_class(deal)
+            response = {"status": True, "results": response.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {"status": False, "message": "Something Went Wrong","error": str(e)}
+            return Response(error, status=status.HTTP_200_OK)
+
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            deal = self.queryset.get(pk=kwargs["pk"])
+            deal.delete()
+            response = {"status": True, "Message": "successfully deleted"}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {"status": False, "message": "Something Went Wrong","error": str(e)}
+            return Response(error, status=status.HTTP_200_OK)

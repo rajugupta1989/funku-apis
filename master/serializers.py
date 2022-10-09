@@ -13,7 +13,10 @@ from master.models import (
     PropertyFacilities,
     ArtistType,
     Language,
-    AdditionalFeature
+    AdditionalFeature,
+    DealTermsAndConditions,
+    FlashDealFor,
+    BrandType
 )
 
 
@@ -99,4 +102,22 @@ class LanguageSerializer(serializers.ModelSerializer):
 class AdditionalFeatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdditionalFeature
+        fields = "__all__"
+
+
+class DealTermsAndConditionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DealTermsAndConditions
+        fields = "__all__"
+
+
+class FlashDealForSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FlashDealFor
+        fields = "__all__"
+
+
+class BrandTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BrandType
         fields = "__all__"
