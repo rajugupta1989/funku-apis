@@ -5,6 +5,8 @@ from property.models import (
     PropertyAvailableFacilities,
     PropertySocialDetail,
     FlashDealDetail,
+    Deal,
+    Party,
 )
 
 
@@ -71,4 +73,16 @@ class PropertySocialDetailSerializer(serializers.ModelSerializer):
 class FlashDealDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlashDealDetail
+        fields = "__all__"
+
+
+class DealSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Deal
+        fields = "__all__"
+
+
+class PartySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Party
         fields = "__all__"

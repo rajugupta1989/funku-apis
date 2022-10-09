@@ -20,5 +20,7 @@ urlpatterns = [
     path(r"additional_feature/", views.AdditionalFeatureAPIView.as_view(), name="additional_feature"),
     path(r"deal_terms_and_conditions/", views.DealTermsAndConditionsAPIView.as_view(), name="deal_tearms_and_conditions"),
     path(r"flash_deal_for/", views.FlashDealForAPIView.as_view(), name="flash_deal_for"),
-     path(r"brand_type/", views.BrandTypeAPIView.as_view(), name="brand_type"),
+    path(r"brand_type/", views.BrandTypeAPIView.as_view(), name="brand_type"),
+    path(r"deal_type/", views.DealTypeAPIView.as_view(), name="deal_type"),
+    path(r"entry_type/", views.EntryTypeAPIView.as_view(), name="entry_type"),
 ]

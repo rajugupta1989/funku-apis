@@ -16,7 +16,9 @@ from master.models import (
     AdditionalFeature,
     DealTermsAndConditions,
     FlashDealFor,
-    BrandType
+    BrandType,
+    DealType,
+    EntryType
 )
 
 
@@ -120,4 +122,15 @@ class FlashDealForSerializer(serializers.ModelSerializer):
 class BrandTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = BrandType
+        fields = "__all__"
+
+class DealTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DealType
+        fields = "__all__"
+
+
+class EntryTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EntryType
         fields = "__all__"

@@ -17,7 +17,9 @@ from master.models import (
     AdditionalFeature,
     DealTermsAndConditions,
     FlashDealFor,
-    BrandType
+    BrandType,
+    DealType,
+    EntryType,
 )
 
 # Register your models here.
@@ -40,3 +42,5 @@ admin.site.register(AdditionalFeature)
 admin.site.register(DealTermsAndConditions)
 admin.site.register(FlashDealFor)
 admin.site.register(BrandType)
+admin.site.register(DealType)
+admin.site.register(EntryType)

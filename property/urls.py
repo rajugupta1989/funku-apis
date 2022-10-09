@@ -16,4 +16,11 @@ urlpatterns = [
     path(r'add_flash_deal/', views.AddFlashDealAPIView.as_view(), name='add_flash_deal'),
     path(r'update_flash_deal/<int:pk>/', views.UpdateFlashDealAPIView.as_view(), name='update_flash_deal'),
 
+    path(r'add_deal/', views.AddDealAPIView.as_view(), name='add_deal'),
+    path(r'update_deal/<int:pk>/', views.UpdateDealAPIView.as_view(), name='update_deal'),
+
+
+    path(r'add_party/', views.AddPartyAPIView.as_view(), name='add_party'),
+    path(r'update_party/<int:pk>/', views.UpdatePartyAPIView.as_view(), name='update_party'),
+
 ]

@@ -2,6 +2,7 @@ from unicodedata import category
 from django.db import models
 from common.abstract_model import CommonAbstractModel
 from account.models import User, FileRepo
+from artist.models import UserAtrist
 from master.models import (
     Country,
     State,
@@ -12,6 +13,8 @@ from master.models import (
     DealTermsAndConditions,
     drink_type,
     BrandType,
+    DealType,
+    EntryType
 )
 
 
@@ -84,4 +87,43 @@ class FlashDealDetail(CommonAbstractModel):
     )
     brand = models.ForeignKey(
         BrandType, on_delete=models.CASCADE, blank=True, null=True
+    )
+
+
+class Deal(CommonAbstractModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    deal_name = models.CharField(max_length=100,blank=True, null=True)
+    deal_code = models.CharField(max_length=100,blank=True, null=True)
+    deal_type = models.ForeignKey(
+        DealType, on_delete=models.CASCADE, blank=True, null=True
+    )
+    deal_for = models.ForeignKey(
+        FlashDealFor, on_delete=models.CASCADE, blank=True, null=True
+    )
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    terms_conditions = models.ManyToManyField(DealTermsAndConditions, blank=True)
+    entry_type = models.ForeignKey(
+        EntryType, on_delete=models.CASCADE, blank=True, null=True
+    )
+    recurring = models.BooleanField(default=False)
+
+
+
+class Party(CommonAbstractModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    party_name = models.CharField(max_length=100,blank=True, null=True)
+    artist = models.ForeignKey(
+        UserAtrist, on_delete=models.CASCADE, blank=True, null=True
+    )
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    terms_conditions = models.ManyToManyField(DealTermsAndConditions, blank=True)
+    rsvp = models.BooleanField(default=False)
+    entry_charge = models.CharField(max_length=100,blank=True, null=True)
+    cover_charge = models.CharField(max_length=100,blank=True, null=True)
+    image = models.ManyToManyField(
+        FileRepo, blank=True, related_name="image"
     )

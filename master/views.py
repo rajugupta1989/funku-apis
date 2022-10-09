@@ -710,3 +710,102 @@ class BrandTypeAPIView(generics.ListCreateAPIView):
                 "error": str(e),
             }
             return Response(error, status=status.HTTP_200_OK)
+
+
+class DealTypeAPIView(generics.ListCreateAPIView):
+    """
+     Deal Type
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = DealType.objects.all()
+    serializer_class = DealTypeSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid(raise_exception=False):
+                serializer.save()
+                return Response(
+                    {"status": True, "results": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+    def get(self, request, *args, **kwargs):
+        try:
+            queryset = self.get_queryset()
+            response = self.serializer_class(instance=queryset, many=True)
+            response = {"status": True, "results": response.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+class EntryTypeAPIView(generics.ListCreateAPIView):
+    """
+     Entry Type
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = EntryType.objects.all()
+    serializer_class = EntryTypeSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid(raise_exception=False):
+                serializer.save()
+                return Response(
+                    {"status": True, "results": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+    def get(self, request, *args, **kwargs):
+        try:
+            queryset = self.get_queryset()
+            response = self.serializer_class(instance=queryset, many=True)
+            response = {"status": True, "results": response.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
