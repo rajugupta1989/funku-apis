@@ -6,6 +6,14 @@
 # Node artifact files
 node_modules/
 dist/
+*.pyc
+.env
+
+
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
+
 
 # Compiled Java class files
 *.class
