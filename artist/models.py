@@ -28,6 +28,8 @@ class UserAtrist(CommonAbstractModel):
     city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True)
     charges = models.CharField(max_length=100, blank=True, null=True)
     payment = models.ManyToManyField(PaymentMethod, blank=True)
+    lat = models.FloatField(blank=True, null=True)
+    long = models.FloatField(blank=True, null=True)
 
 
 class AtristSocialProfile(CommonAbstractModel):

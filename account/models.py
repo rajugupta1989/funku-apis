@@ -174,7 +174,8 @@ class userProfileDetail(CommonAbstractModel):
     music = models.ManyToManyField(music_type,blank=True)
     drink = models.ManyToManyField(drink_type,blank=True)
     bar = models.ManyToManyField(bar_type,blank=True)
-
+    lat = models.FloatField(blank=True, null=True)
+    long = models.FloatField(blank=True, null=True)
 
 
 class FileRepo(CommonAbstractModel):

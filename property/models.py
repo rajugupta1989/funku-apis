@@ -18,13 +18,10 @@ from master.models import (
 )
 
 
-class UserPropertyThumb(CommonAbstractModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, unique=True)
-    profile_image = models.FileField(upload_to="documents", null=True, default=None)
 
 
 class UserProperty(CommonAbstractModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.CharField(max_length=300, blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
@@ -40,6 +37,13 @@ class UserProperty(CommonAbstractModel):
     total_capacity = models.IntegerField(blank=True, null=True)
     seating_capacity = models.IntegerField(blank=True, null=True)
     fee = models.IntegerField(blank=True, null=True)
+    lat = models.FloatField(blank=True, null=True)
+    long = models.FloatField(blank=True, null=True)
+
+class UserPropertyThumb(CommonAbstractModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    profile_image = models.FileField(upload_to="documents", null=True, default=None)
 
 
 class PropertyAvailableFacilities(CommonAbstractModel):

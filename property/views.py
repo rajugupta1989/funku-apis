@@ -102,7 +102,7 @@ class PropertyProfileImageUpdateAPIView(generics.RetrieveUpdateAPIView):
             return Response(error, status=status.HTTP_200_OK)
 
 
-class AddPropertyAPIView(generics.CreateAPIView):
+class AddPropertyAPIView(generics.ListCreateAPIView):
     """
     Add property
     """
@@ -138,6 +138,19 @@ class AddPropertyAPIView(generics.CreateAPIView):
             return Response(error, status=status.HTTP_200_OK)
 
 
+    def get(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            profile = self.queryset.filter(user=user.id)
+            response = self.serializer_class(profile,many=True)
+            response = {"status": True, "results": response.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {"status": False, "message": "Something Went Wrong"}
+            return Response(error, status=status.HTTP_200_OK)
+
+
+
 class UpdateDeletePropertyAPIView(generics.RetrieveUpdateAPIView):
     """
     Property Update
@@ -152,7 +165,7 @@ class UpdateDeletePropertyAPIView(generics.RetrieveUpdateAPIView):
         try:
             user = self.request.user
             request.data["user"] = user.id
-            profile = self.queryset.filter(user=user.id).last()
+            profile = self.queryset.get(id=kwargs["pk"])
             serializer = self.serializer_class(instance=profile, data=request.data)
             if serializer.is_valid(raise_exception=False):
                 serializer.save()
@@ -176,7 +189,7 @@ class UpdateDeletePropertyAPIView(generics.RetrieveUpdateAPIView):
     def get(self, request, *args, **kwargs):
         try:
             user = self.request.user
-            profile = self.queryset.filter(user=user.id).last()
+            profile = self.queryset.get(id=kwargs["pk"])
             response = self.serializer_class(profile)
             response = {"status": True, "results": response.data}
             return Response(response, status=status.HTTP_200_OK)
