@@ -1,5 +1,7 @@
 from django.urls import path
 from master import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path(
@@ -24,3 +26,5 @@ urlpatterns = [
     path(r"deal_type/", views.DealTypeAPIView.as_view(), name="deal_type"),
     path(r"entry_type/", views.EntryTypeAPIView.as_view(), name="entry_type"),
 ]
+urlpatterns += static(settings.MEDIA_URL,
+                      document_root=settings.MEDIA_ROOT)

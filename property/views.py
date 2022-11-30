@@ -12,6 +12,7 @@ from django.utils.text import gettext_lazy as _
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout
 from django.contrib.auth import login
+from django.db import transaction, IntegrityError
 import json
 from property.models import *
 from property.serializers import *
@@ -149,6 +150,84 @@ class AddPropertyAPIView(generics.ListCreateAPIView):
             error = {"status": False, "message": "Something Went Wrong"}
             return Response(error, status=status.HTTP_200_OK)
 
+
+class AddPropertyWebAPIView(generics.ListCreateAPIView):
+    """
+    Add property web
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserProperty.objects.all()
+    serializer_class = UserPropertySerializer
+    serializer_class_thumb = UserPropertyThumbSerializer
+    serializer_class_facility = PropertyAvailableFacilitiesSerializer
+    serializer_class_social = PropertySocialDetailSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                user = self.request.user
+                request.data["user"] = user.id
+                serializer = self.serializer_class(data=request.data)
+                if serializer.is_valid(raise_exception=False):
+                    serializer.save()
+                    request.data["property"] = serializer.data['id']
+                    serializer_thumb = self.serializer_class_thumb(data=request.data)
+                    if serializer_thumb.is_valid(raise_exception=False):
+                        serializer_thumb.save()
+                    else:
+                        transaction.set_rollback(True)
+                        return Response(
+                            {"status": False, "error": serializer_thumb.errors}, status=status.HTTP_200_OK
+                        )
+                    serializer_facility = self.serializer_class_facility(data=request.data)
+                    if serializer_facility.is_valid(raise_exception=False):
+                        serializer_facility.save()
+                    else:
+                        transaction.set_rollback(True)
+                        return Response(
+                            {"status": False, "error": serializer_facility.errors}, status=status.HTTP_200_OK
+                        )
+                    serializer_social = self.serializer_class_social(data=request.data)
+                    if serializer_social.is_valid(raise_exception=False):
+                        serializer_social.save()
+                    else:
+                        transaction.set_rollback(True)
+                        return Response(
+                            {"status": False, "error": serializer_social.errors}, status=status.HTTP_200_OK
+                        )
+
+                    return Response(
+                        {"status": True, "results": serializer.data},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    transaction.set_rollback(True)
+                    return Response(
+                        {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+                    )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            profile = self.queryset.filter(user=user.id)
+            response = self.serializer_class(profile,many=True)
+            response = {"status": True, "results": response.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {"status": False, "message": "Something Went Wrong"}
+            return Response(error, status=status.HTTP_200_OK)
 
 
 class UpdateDeletePropertyAPIView(generics.RetrieveUpdateAPIView):
