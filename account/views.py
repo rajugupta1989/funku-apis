@@ -29,6 +29,7 @@ from account.serializers import (
     userProfileSerializer,
     userProfileDetailSerializer,
     FileRepoSerializer,
+    UserSerializer,
 )
 from account.models import User, Role, userProfile, userProfileDetail,FileRepo
 from account.utils import sent_sms, otp_verify
@@ -617,4 +618,25 @@ class FileRepoAPIView(generics.RetrieveUpdateDestroyAPIView):
                 return Response(response, status=status.HTTP_200_OK)
         except Exception as e:
             error = {'status': False, 'message': "Something Went Wrong"}
+            return Response(error, status=status.HTTP_200_OK)
+
+
+class UserSearchAPIView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            mobile = self.request.query_params.get("mobile", None)
+            user = self.queryset.filter(mobile__icontains=mobile,is_superuser=False,is_active=True)
+            serializer = self.serializer_class(instance=user,many=True)
+            response = {
+                    'status': True,'results': serializer.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(str(e))
+            error = {'status': False,
+                     'message': "Something Went Wrong", "error": str(e)}
             return Response(error, status=status.HTTP_200_OK)

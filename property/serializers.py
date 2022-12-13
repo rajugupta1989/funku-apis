@@ -24,9 +24,15 @@ class UserPropertySerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         serializer = super().to_representation(instance)
         payment = instance.payment.all().values("id", "name")
+        available = PropertyAvailableFacilities.objects.filter(property=instance).last()
+        available_facilities = PropertyAvailableFacilitiesSerializer(instance=available).data
+        social = PropertySocialDetail.objects.filter(property=instance).last()
+        social_data = PropertySocialDetailSerializer(instance=social).data
         serializer.update(
             {
                 "payment": payment,
+                "available_facilities":available_facilities,
+                "social_data":social_data
             }
         )
         return serializer

@@ -226,8 +226,87 @@ class AddPropertyWebAPIView(generics.ListCreateAPIView):
             response = {"status": True, "results": response.data}
             return Response(response, status=status.HTTP_200_OK)
         except Exception as e:
+            error = {"status": False, "message": "Something Went Wrong","error": str(e),}
+            return Response(error, status=status.HTTP_200_OK)
+
+class UpdateDeletePropertyWebAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Property Update web
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserProperty.objects.all()
+    serializer_class = UserPropertySerializer
+    serializer_class_thumb = UserPropertyThumbSerializer
+    serializer_class_facility = PropertyAvailableFacilitiesSerializer
+    serializer_class_social = PropertySocialDetailSerializer
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                user = self.request.user
+                request.data["user"] = user.id
+                profile = self.queryset.get(id=kwargs["pk"])
+                serializer = self.serializer_class(instance=profile, data=request.data)
+                if serializer.is_valid(raise_exception=False):
+                    serializer.save()
+                else:
+                    transaction.set_rollback(True)
+                    return Response(
+                        {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+                    )
+                facility = PropertyAvailableFacilities.objects.filter(property=kwargs["pk"]).last()
+                request.data['property']=kwargs["pk"]
+                serializer_facility = self.serializer_class_facility(instance=facility,data=request.data)
+                if serializer_facility.is_valid(raise_exception=False):
+                    serializer_facility.save()
+                else:
+                    transaction.set_rollback(True)
+                    return Response(
+                        {"status": False, "error": serializer_facility.errors}, status=status.HTTP_200_OK
+                    )
+                social = PropertySocialDetail.objects.filter(property=kwargs["pk"]).last()
+                serializer_social = self.serializer_class_social(instance=social,data=request.data)
+                if serializer_social.is_valid(raise_exception=False):
+                    serializer_social.save()
+                    return Response(
+                        {"status": True, "message": "Successfully updated"}, status=status.HTTP_200_OK
+                    )
+                else:
+                    transaction.set_rollback(True)
+                    return Response(
+                        {"status": False, "error": serializer_social.errors}, status=status.HTTP_200_OK
+                    )
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            profile = self.queryset.get(id=kwargs["pk"])
+            profile.delete()
+            response = {"status": True, "Message": "Successfully deleted"}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
             error = {"status": False, "message": "Something Went Wrong"}
             return Response(error, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            profile = self.queryset.get(id=kwargs["pk"])
+            response = self.serializer_class(profile)
+            response = {"status": True, "results": response.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {"status": False, "message": "Something Went Wrong"}
+            return Response(error, status=status.HTTP_200_OK)
+
 
 
 class UpdateDeletePropertyAPIView(generics.RetrieveUpdateAPIView):

@@ -39,6 +39,8 @@ class UserProperty(CommonAbstractModel):
     fee = models.IntegerField(blank=True, null=True)
     lat = models.FloatField(blank=True, null=True)
     long = models.FloatField(blank=True, null=True)
+    manager = models.ManyToManyField(User,related_name='manager', blank=True)
+
 
 class UserPropertyThumb(CommonAbstractModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
