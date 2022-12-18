@@ -231,7 +231,8 @@ class ProfileAPIView(generics.RetrieveUpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            queryset = self.queryset.get(id=kwargs["pk"])
+            user = self.request.user.id
+            queryset = self.queryset.get(id=user)
             response = UserProfileUpdateSerializer(instance=queryset)
             response = {"status": True, "results": response.data}
             return Response(response, status=status.HTTP_200_OK)
