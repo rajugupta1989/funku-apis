@@ -8,6 +8,7 @@ from property.models import (
     Deal,
     Party,
 )
+from account.serializers import UserProfileUpdateSerializer
 
 
 class UserPropertyThumbSerializer(serializers.ModelSerializer):
@@ -28,11 +29,13 @@ class UserPropertySerializer(serializers.ModelSerializer):
         available_facilities = PropertyAvailableFacilitiesSerializer(instance=available).data
         social = PropertySocialDetail.objects.filter(property=instance).last()
         social_data = PropertySocialDetailSerializer(instance=social).data
+        manager = UserProfileUpdateSerializer(instance=instance.manager,many=True).data
         serializer.update(
             {
                 "payment": payment,
                 "available_facilities":available_facilities,
-                "social_data":social_data
+                "social_data":social_data,
+                "manager":manager
             }
         )
         return serializer

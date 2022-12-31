@@ -14,7 +14,8 @@ from master.models import (
     drink_type,
     BrandType,
     DealType,
-    EntryType
+    EntryType,
+    property_type
 )
 
 
@@ -36,10 +37,12 @@ class UserProperty(CommonAbstractModel):
     payment = models.ManyToManyField(PaymentMethod, blank=True)
     total_capacity = models.IntegerField(blank=True, null=True)
     seating_capacity = models.IntegerField(blank=True, null=True)
+    property_type = models.ForeignKey(property_type, on_delete=models.CASCADE, blank=True, null=True)
     fee = models.IntegerField(blank=True, null=True)
     lat = models.FloatField(blank=True, null=True)
     long = models.FloatField(blank=True, null=True)
     manager = models.ManyToManyField(User,related_name='manager', blank=True)
+    listing_date = models.DateField(blank=True, null=True) 
 
 
 class UserPropertyThumb(CommonAbstractModel):
