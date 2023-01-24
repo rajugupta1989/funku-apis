@@ -8,6 +8,7 @@ from property.models import (
     Deal,
     Party,
 )
+from master.serializers import DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer
 from account.serializers import UserProfileUpdateSerializer
 
 
@@ -89,6 +90,23 @@ class DealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Deal
         fields = "__all__"
+
+
+    def to_representation(self, instance):
+        serializer = super().to_representation(instance)
+        terms_conditions = instance.terms_conditions.all().values("id", "name")
+        property_ = UserPropertySerializer(instance=instance.property).data
+        deal_type = DealTypeSerializer(instance=instance.deal_type).data
+        deal_for = FlashDealForSerializer(instance=instance.deal_for).data
+        entry_type = EntryTypeSerializer(instance=instance.entry_type).data
+        serializer.update({
+            "property": property_,
+            "deal_type": deal_type,
+            "deal_for": deal_for,
+            "entry_type": entry_type,
+            "terms_conditions":terms_conditions
+        })
+        return serializer
 
 
 class PartySerializer(serializers.ModelSerializer):
