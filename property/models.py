@@ -117,6 +117,10 @@ class Deal(CommonAbstractModel):
         EntryType, on_delete=models.CASCADE, blank=True, null=True
     )
     recurring = models.BooleanField(default=False)
+    entry_price = models.CharField(max_length=100,blank=True, null=True)
+    discount = models.CharField(max_length=100,blank=True, null=True)
+    cover_charge = models.CharField(max_length=100,blank=True, null=True)
+    no_of_people = models.CharField(max_length=100,blank=True, null=True)
 
 
 
