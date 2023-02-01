@@ -237,7 +237,7 @@ class ProfileAPIView(generics.RetrieveUpdateAPIView):
             response = {"status": True, "results": response.data}
             return Response(response, status=status.HTTP_200_OK)
         except Exception as e:
-            error = {"status": False, "message": "Something Went Wrong"}
+            error = {"status": False, "message": "Something Went Wrong","error":str(e)}
             return Response(error, status=status.HTTP_200_OK)
 
 

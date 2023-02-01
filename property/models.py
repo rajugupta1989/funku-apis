@@ -42,7 +42,7 @@ class UserProperty(CommonAbstractModel):
     lat = models.FloatField(blank=True, null=True)
     long = models.FloatField(blank=True, null=True)
     manager = models.ManyToManyField(User,related_name='manager', blank=True)
-    listing_date = models.DateField(blank=True, null=True) 
+    listing_date = models.DateField(blank=True, null=True)
 
 
 class UserPropertyThumb(CommonAbstractModel):

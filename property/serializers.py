@@ -8,7 +8,7 @@ from property.models import (
     Deal,
     Party,
 )
-from master.serializers import DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer
+from master.serializers import DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
 from account.serializers import UserProfileUpdateSerializer
 
 
@@ -19,9 +19,14 @@ class UserPropertyThumbSerializer(serializers.ModelSerializer):
 
 
 class UserPropertySerializer(serializers.ModelSerializer):
+    propertythumb = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = UserProperty
         fields = "__all__"
+
+    def get_propertythumb(self, instance):
+        pro_ins = UserPropertyThumb.objects.filter(property=instance.id).last()
+        return UserPropertyThumbSerializer(instance=pro_ins).data
 
     def to_representation(self, instance):
         serializer = super().to_representation(instance)
@@ -85,6 +90,21 @@ class FlashDealDetailSerializer(serializers.ModelSerializer):
         model = FlashDealDetail
         fields = "__all__"
 
+    def to_representation(self, instance):
+        serializer = super().to_representation(instance)
+        terms_conditions = instance.terms_conditions.all().values("id", "name")
+        property_ = UserPropertySerializer(instance=instance.property).data
+        category = drink_typeSerializer(instance=instance.category).data
+        deal_for = FlashDealForSerializer(instance=instance.deal_for).data
+        brand = BrandTypeSerializer(instance=instance.brand).data
+        serializer.update({
+            "property": property_,
+            "category": category,
+            "deal_for": deal_for,
+            "brand": brand,
+            "terms_conditions":terms_conditions
+        })
+        return serializer
 
 class DealSerializer(serializers.ModelSerializer):
     class Meta:
@@ -113,3 +133,13 @@ class PartySerializer(serializers.ModelSerializer):
     class Meta:
         model = Party
         fields = "__all__"
+
+    def to_representation(self, instance):
+        serializer = super().to_representation(instance)
+        terms_conditions = instance.terms_conditions.all().values("id", "name")
+        image = instance.image.all().values("id", "title","description","file")
+        serializer.update({
+            "terms_conditions":terms_conditions,
+            "image":image
+        })
+        return serializer

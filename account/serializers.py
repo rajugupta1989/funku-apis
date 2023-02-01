@@ -54,13 +54,15 @@ class UserLoginSerializer(serializers.ModelSerializer):
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
-
+    profile = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = User
-        fields = ('id','first_name', 'last_name', 'role','email','mobile','page_count')
+        fields = ('id','first_name', 'last_name', 'role','email','mobile','page_count','profile')
 
-
-
+    def get_profile(self, instance):
+        profile_ins = userProfile.objects.filter(user=instance.id).last()
+        return userProfileSerializer(instance=profile_ins).data
+    
 
 
 class userProfileSerializer(serializers.ModelSerializer):

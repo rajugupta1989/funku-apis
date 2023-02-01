@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework import generics
 from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -8,7 +7,7 @@ from rest_framework_jwt.serializers import RefreshJSONWebTokenSerializer
 from rest_framework_jwt.views import JSONWebTokenAPIView
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from django.utils.text import gettext_lazy as _
-
+from rest_framework import generics, exceptions, pagination, status
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout
 from django.contrib.auth import login
@@ -143,11 +142,12 @@ class AddPropertyAPIView(generics.ListCreateAPIView):
         try:
             user = self.request.user
             profile = self.queryset.filter(user=user.id)
-            response = self.serializer_class(profile,many=True)
-            response = {"status": True, "results": response.data}
-            return Response(response, status=status.HTTP_200_OK)
+            page = self.paginate_queryset(profile)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
         except Exception as e:
-            error = {"status": False, "message": "Something Went Wrong"}
+            error = {"status": False, "message": "Something Went Wrong","error":str(e)}
             return Response(error, status=status.HTTP_200_OK)
 
 
@@ -558,10 +558,11 @@ class AddFlashDealAPIView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         try:
             user_id = self.request.GET.get('user_id', None)
-            instance = self.queryset.filter(user_id=user_id)
-            serializer = self.serializer_class(instance, many=True)
-            dict = {'status': True, 'results': serializer.data}
-            return Response(dict, status=status.HTTP_200_OK)
+            deal = self.queryset.filter(user=user_id)
+            page = self.paginate_queryset(deal)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
         except Exception as e:
             dict = {"status": False,
                     "message": "something went wrong", "error": str(e)}
@@ -663,10 +664,12 @@ class AddDealAPIView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         try:
             user_id = self.request.GET.get('user_id', None)
-            instance = self.queryset.filter(user_id=user_id)
-            serializer = self.serializer_class(instance, many=True)
-            dict = {'status': True, 'results': serializer.data}
-            return Response(dict, status=status.HTTP_200_OK)
+            profile = self.queryset.filter(user=user_id)
+            page = self.paginate_queryset(profile)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
         except Exception as e:
             dict = {"status": False,
                     "message": "something went wrong", "error": str(e)}
@@ -769,10 +772,11 @@ class AddPartyAPIView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         try:
             user_id = self.request.GET.get('user_id', None)
-            instance = self.queryset.filter(user_id=user_id)
-            serializer = self.serializer_class(instance, many=True)
-            dict = {'status': True, 'results': serializer.data}
-            return Response(dict, status=status.HTTP_200_OK)
+            party = self.queryset.filter(user=user_id)
+            page = self.paginate_queryset(party)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
         except Exception as e:
             dict = {"status": False,
                     "message": "something went wrong", "error": str(e)}

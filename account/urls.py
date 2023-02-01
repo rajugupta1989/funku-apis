@@ -1,5 +1,7 @@
 from django.urls import path
 from account import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path(r'role/', views.RoleAPIView.as_view(), name='role'),
@@ -25,3 +27,7 @@ urlpatterns = [
     # path(r'token-refresh/', views.RefreshToken.as_view(), name='refresh-token')
 
 ]
+
+
+urlpatterns += static(settings.MEDIA_URL,
+                      document_root=settings.MEDIA_ROOT)
