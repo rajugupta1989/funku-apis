@@ -8,7 +8,7 @@ from property.models import (
     Deal,
     Party,
 )
-from master.serializers import DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
+from master.serializers import CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
 from account.serializers import UserProfileUpdateSerializer
 
 
@@ -36,12 +36,20 @@ class UserPropertySerializer(serializers.ModelSerializer):
         social = PropertySocialDetail.objects.filter(property=instance).last()
         social_data = PropertySocialDetailSerializer(instance=social).data
         manager = UserProfileUpdateSerializer(instance=instance.manager,many=True).data
+        country = CountrySerializer(instance=instance.country).data
+        state = StateSerializer(instance=instance.state).data
+        city = CitySerializer(instance=instance.city).data
         serializer.update(
             {
                 "payment": payment,
                 "available_facilities":available_facilities,
                 "social_data":social_data,
-                "manager":manager
+                "manager":manager,
+                "country":country,
+                "state":state,
+                "city":city
+
+
             }
         )
         return serializer
@@ -138,7 +146,9 @@ class PartySerializer(serializers.ModelSerializer):
         serializer = super().to_representation(instance)
         terms_conditions = instance.terms_conditions.all().values("id", "name")
         image = instance.image.all().values("id", "title","description","file")
+        property_ = UserPropertySerializer(instance=instance.property).data
         serializer.update({
+            "property": property_,
             "terms_conditions":terms_conditions,
             "image":image
         })
