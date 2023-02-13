@@ -1,4 +1,4 @@
 {
     "python.pythonPath": "/home/rajukumargupta/Documents/rajuDoc/env/bin/python",
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
 }

@@ -17,6 +17,9 @@ import json
 import datetime
 from property.models import *
 from property.serializers import *
+# from django_filters.rest_framework import DjangoFilterBackend
+# from rest_framework import filters
+# from property.filters import DealFilter
 
 # Create your views here.
 
@@ -852,6 +855,7 @@ class GetDealByLatLongAPIView(generics.ListAPIView):
     authentication_class = JSONWebTokenAuthentication
     queryset = UserProperty.objects.all()
     serializer_class = DealSerializer
+    
 
 
     def get(self, request, *args, **kwargs):
@@ -859,11 +863,24 @@ class GetDealByLatLongAPIView(generics.ListAPIView):
             lat = request.query_params.get('lat', None)
             long = request.query_params.get('long', None)
             distance = request.query_params.get('distance', None)
-            current_datetime = datetime.datetime.now()
-            data = get_lat_long_calculated(lat,long,distance)
-            property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
-            .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
-            deal_inst = Deal.objects.filter(property__in=property_id,start_date__lte=current_datetime,end_date__gte=current_datetime)
+            date_range = request.query_params.get('date_range', None)
+            if date_range is None or date_range == '':
+                current_datetime = datetime.datetime.now()
+                data = get_lat_long_calculated(lat,long,distance)
+                property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+                .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
+                deal_inst = Deal.objects.filter(property__in=property_id,start_date__lte=current_datetime,end_date__gte=current_datetime)
+            else:
+                date_list = date_range.split(',')
+                deal_list = []
+                for date_ in date_list:
+                    current_datetime = date_
+                    data = get_lat_long_calculated(lat,long,distance)
+                    property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+                    .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
+                    deal_id = Deal.objects.filter(property__in=property_id,start_date__date__lte=current_datetime,end_date__date__gte=current_datetime).values_list('id',flat=True)
+                    deal_list.append(deal_id)
+                deal_inst = Deal.objects.filter(id__in=list(set(deal_list)))
             page = self.paginate_queryset(deal_inst)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
@@ -889,11 +906,24 @@ class GetFlashDealByLatLongAPIView(generics.ListAPIView):
             lat = request.query_params.get('lat', None)
             long = request.query_params.get('long', None)
             distance = request.query_params.get('distance', None)
-            current_datetime = datetime.datetime.now()
-            data = get_lat_long_calculated(lat,long,distance)
-            property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
-            .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
-            deal_inst = FlashDealDetail.objects.filter(property__in=property_id,start_date__lte=current_datetime,end_date__gte=current_datetime)
+            date_range = request.query_params.get('date_range', None)
+            if date_range is None or date_range == '':
+                current_datetime = datetime.datetime.now()
+                data = get_lat_long_calculated(lat,long,distance)
+                property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+                .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
+                deal_inst = FlashDealDetail.objects.filter(property__in=property_id,start_date__lte=current_datetime,end_date__gte=current_datetime)
+            else:
+                date_list = date_range.split(',')
+                deal_list = []
+                for date_ in date_list:
+                    current_datetime = date_
+                    data = get_lat_long_calculated(lat,long,distance)
+                    property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+                    .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
+                    deal_id = FlashDealDetail.objects.filter(property__in=property_id,start_date__date__lte=current_datetime,end_date__date__gte=current_datetime).values_list('id',flat=True)
+                    deal_list.append(deal_id)
+                deal_inst = FlashDealDetail.objects.filter(id__in=list(set(deal_list)))
             page = self.paginate_queryset(deal_inst)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
@@ -919,11 +949,24 @@ class GetPartyByLatLongAPIView(generics.ListAPIView):
             lat = request.query_params.get('lat', None)
             long = request.query_params.get('long', None)
             distance = request.query_params.get('distance', None)
-            current_datetime = datetime.datetime.now()
-            data = get_lat_long_calculated(lat,long,distance)
-            property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
-            .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
-            deal_inst = Party.objects.filter(property__in=property_id,start_date__lte=current_datetime,end_date__gte=current_datetime)
+            date_range = request.query_params.get('date_range', None)
+            if date_range is None or date_range == '':
+                current_datetime = datetime.datetime.now()
+                data = get_lat_long_calculated(lat,long,distance)
+                property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+                .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
+                deal_inst = Party.objects.filter(property__in=property_id,start_date__lte=current_datetime,end_date__gte=current_datetime)
+            else:
+                date_list = date_range.split(',')
+                deal_list = []
+                for date_ in date_list:
+                    current_datetime = date_
+                    data = get_lat_long_calculated(lat,long,distance)
+                    property_id = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+                    .filter(long__gte=data.long2, long__lte=data.long1).values_list('id',flat=True)
+                    deal_id = Party.objects.filter(property__in=property_id,start_date__date__lte=current_datetime,end_date__date__gte=current_datetime).values_list('id',flat=True)
+                    deal_list.append(deal_id)
+                deal_inst = Party.objects.filter(id__in=list(set(deal_list)))
             page = self.paginate_queryset(deal_inst)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
