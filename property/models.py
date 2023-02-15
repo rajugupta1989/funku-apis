@@ -140,3 +140,9 @@ class Party(CommonAbstractModel):
     image = models.ManyToManyField(
         FileRepo, blank=True, related_name="image"
     )
+
+
+
+class userEnquiry(CommonAbstractModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    

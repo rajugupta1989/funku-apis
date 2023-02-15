@@ -152,6 +152,7 @@ class Verify(generics.CreateAPIView):
                                 mobile=mobile,
                                 email=mobile + "@xyz.com",
                                 password=mobile,
+                                page_count=0
                             )
                         kwargs = CommonHelper.email_or_mobile(mobile)
                         credentials = {"password": mobile}
@@ -159,7 +160,7 @@ class Verify(generics.CreateAPIView):
                         user = authenticate(**credentials)
                         tokendata = {
                             "token": user.token,
-                            "page_count": user_data.page_count,
+                            "page_count": user.page_count,
                         }
                         response = {
                             "status": True,

@@ -974,3 +974,6 @@ class GetPartyByLatLongAPIView(generics.ListAPIView):
         except Exception as e:
             error = {"status": False, "message": "Something Went Wrong","error":str(e)}
             return Response(error, status=status.HTTP_200_OK)
+
+
+
