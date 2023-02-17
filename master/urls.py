@@ -25,6 +25,7 @@ urlpatterns = [
     path(r"brand_type/", views.BrandTypeAPIView.as_view(), name="brand_type"),
     path(r"deal_type/", views.DealTypeAPIView.as_view(), name="deal_type"),
     path(r"entry_type/", views.EntryTypeAPIView.as_view(), name="entry_type"),
+    path(r"occasion/", views.OccasionAPIView.as_view(), name="occasion"),
 ]
 urlpatterns += static(settings.MEDIA_URL,
                       document_root=settings.MEDIA_ROOT)

@@ -15,9 +15,10 @@ from master.models import (
     BrandType,
     DealType,
     EntryType,
-    property_type
+    property_type,
+    Occasion
 )
-
+from property.choices import *
 
 
 
@@ -143,6 +144,25 @@ class Party(CommonAbstractModel):
 
 
 
-class userEnquiry(CommonAbstractModel):
+class UserEnquiry(CommonAbstractModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+    lat = models.FloatField(blank=True, null=True)
+    long = models.FloatField(blank=True, null=True)
+    distance = models.IntegerField(null=True, default=None)
+    type_of_place = models.ManyToManyField(property_type, blank=True,)
+    specific_club = models.ManyToManyField(UserProperty, blank=True)
+    table_book = models.BooleanField(default=False)
+    date = models.DateTimeField(null=True, blank=True)
+    no_of_guest = models.CharField(max_length=100,blank=True, null=True)
+    occasion = models.ForeignKey(Occasion, on_delete=models.CASCADE)
+    budget = models.CharField(max_length=100,blank=True, null=True)
+    meal_preference = models.CharField(choices=MealPreferenceChoices.choices,
+                                    max_length=200,
+                                    default=MEAL_TYPE['VEGETARIAN'])
+    drink_preference = models.CharField(choices=DrinkPreferenceChoices.choices,
+                                    max_length=200,
+                                    default=DRINK_TYPE['NON-ALCOHOLIC'])
+    music_preference = models.CharField(choices=MusicPreferenceChoices.choices,
+                                    max_length=200,
+                                    default=MUSIC_TYPE['LIVE-DJ'])
+    whatsapp_no = models.CharField(max_length=100,blank=True, null=True)

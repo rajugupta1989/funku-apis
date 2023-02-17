@@ -18,7 +18,8 @@ from master.models import (
     FlashDealFor,
     BrandType,
     DealType,
-    EntryType
+    EntryType,
+    Occasion
 )
 
 
@@ -133,4 +134,10 @@ class DealTypeSerializer(serializers.ModelSerializer):
 class EntryTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = EntryType
+        fields = "__all__"
+
+
+class OccasionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Occasion
         fields = "__all__"

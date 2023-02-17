@@ -38,6 +38,30 @@ from account import models
 from django.db.models import Q
 
 
+
+
+
+
+
+
+
+class RefreshToken(JSONWebTokenAPIView):
+    serializer_class = RefreshJSONWebTokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        """
+        Method to refresh the token. Token refresh only valid till original token not expired
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        response = super(RefreshToken, self).post(request, *args, **kwargs)
+        if response.status_code == status.HTTP_200_OK:
+            return Response(CommonHelper.render(True, response.data, "success", response.status_code))
+        return Response(CommonHelper.render(False, None, response.data["non_field_errors"], response.status_code))
+
+
 class RoleAPIView(generics.RetrieveAPIView):
     """
     Get all role
@@ -168,7 +192,7 @@ class Verify(generics.CreateAPIView):
                             "results": tokendata,
                         }
                     else:
-                        response = {"status": False, "message": data["Details"]}
+                        response = {"status": False,"message":"Token expired", "error": data["Details"]}
                 else:
                     response = {"status": False, "message": "OTP expired"}
             elif email is not None:

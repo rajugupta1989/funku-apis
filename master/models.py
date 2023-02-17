@@ -141,3 +141,10 @@ class EntryType(CommonAbstractModel):
     
     def __str__(self):
         return "{}".format(self.name)
+    
+
+class Occasion(CommonAbstractModel):
+    name = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return "{}".format(self.name)

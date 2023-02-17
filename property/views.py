@@ -977,3 +977,102 @@ class GetPartyByLatLongAPIView(generics.ListAPIView):
 
 
 
+class GetPropertyByLatLongAPIView(generics.ListAPIView):
+    """
+    Get property by lat long
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserProperty.objects.all()
+    serializer_class = UserPropertySerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            lat = request.query_params.get('lat', None)
+            long = request.query_params.get('long', None)
+            distance = request.query_params.get('distance', None)
+            data = get_lat_long_calculated(lat,long,distance)
+            property = self.queryset.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+            .filter(long__gte=data.long2, long__lte=data.long1)
+            serializers = self.serializer_class(property,many=True)
+            response = {"status": True, "results": serializers.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {"status": False, "message": "Something Went Wrong","error":str(e)}
+            return Response(error, status=status.HTTP_200_OK)
+
+
+
+
+
+class UserEnquiryAPIView(generics.ListCreateAPIView):
+    """
+    User Enquiry
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserEnquiry.objects.all()
+    serializer_class = UserEnquirySerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            request.data["user"] = user.id
+            specific_club = self.request.data.get('specific_club',None)
+            type_of_place = self.request.data.get('type_of_place',None)
+            lat = self.request.data.get('lat',None)
+            long = self.request.data.get('long',None)
+            distance = self.request.data.get('distance',None)
+            if len(specific_club)>0:
+                serializer = self.serializer_class(data=request.data)
+            elif len(type_of_place)>0:
+                data = get_lat_long_calculated(lat,long,distance)
+                property= UserProperty.objects.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+                .filter(long__gte=data.long2, long__lte=data.long1,property_type__in=type_of_place).values_list('id',flat=True)
+                if len(property)>0:
+                    request.data['specific_club']=property
+                    request.data['type_of_place']=type_of_place
+                    serializer = self.serializer_class(data=request.data)
+                else:
+                    return Response(
+                    {"status": False, "message": "Your selected type of place is not fund in this area to send enquiry, please increase your distance"}, status=status.HTTP_200_OK
+                    )
+            else:
+                return Response(
+                {"status": False, "message": "specific_club or type_of_place is required in the list"}, status=status.HTTP_200_OK
+            )
+
+            if serializer.is_valid(raise_exception=False):
+                serializer.save()
+                return Response(
+                    {"status": True, "message":"Successfully created","results": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = self.request.user
+            party = self.queryset.filter(user=user_id)
+            page = self.paginate_queryset(party)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+        except Exception as e:
+            dict = {"status": False,
+                    "message": "something went wrong", "error": str(e)}
+            return Response(dict, status=status.HTTP_200_OK)

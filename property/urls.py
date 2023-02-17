@@ -27,5 +27,9 @@ urlpatterns = [
     path(r'get_deal_by_lat_long/', views.GetDealByLatLongAPIView.as_view(), name='get_deal_by_lat_long'),
     path(r'get_flashdeal_by_lat_long/', views.GetFlashDealByLatLongAPIView.as_view(), name='get_flashdeal_by_lat_long'),
     path(r'get_party_by_lat_long/', views.GetPartyByLatLongAPIView.as_view(), name='get_party_by_lat_long'),
+    
+    path(r'get_property_by_lat_long/', views.GetPropertyByLatLongAPIView.as_view(), name='get_property_by_lat_long'),
+    path(r'user_enquiry/', views.UserEnquiryAPIView.as_view(), name='user_enquiry'),
+
 
 ]

@@ -7,8 +7,9 @@ from property.models import (
     FlashDealDetail,
     Deal,
     Party,
+    UserEnquiry,
 )
-from master.serializers import CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
+from master.serializers import PropertyTypeSerializer,OccasionSerializer,CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
 from account.serializers import UserProfileUpdateSerializer
 
 
@@ -151,5 +152,24 @@ class PartySerializer(serializers.ModelSerializer):
             "property": property_,
             "terms_conditions":terms_conditions,
             "image":image
+        })
+        return serializer
+
+
+
+
+class UserEnquirySerializer(serializers.ModelSerializer):
+    specific_club = UserPropertySerializer(read_only=True, many=True)
+    class Meta:
+        model = UserEnquiry
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        serializer = super().to_representation(instance)
+        type_of_place = PropertyTypeSerializer(instance.type_of_place,many=True).data
+        occasion = OccasionSerializer(instance.occasion).data
+        serializer.update({
+            "occasion": occasion,
+            "type_of_place":type_of_place
         })
         return serializer
