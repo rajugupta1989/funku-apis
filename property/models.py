@@ -144,13 +144,15 @@ class Party(CommonAbstractModel):
 
 
 
+
+
 class UserEnquiry(CommonAbstractModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     lat = models.FloatField(blank=True, null=True)
     long = models.FloatField(blank=True, null=True)
     distance = models.IntegerField(null=True, default=None)
-    type_of_place = models.ManyToManyField(property_type, blank=True,)
-    specific_club = models.ManyToManyField(UserProperty, blank=True)
+    type_of_place = models.ManyToManyField(property_type, blank=True)
+    specific_club = models.ManyToManyField(UserProperty)
     table_book = models.BooleanField(default=False)
     date = models.DateTimeField(null=True, blank=True)
     no_of_guest = models.CharField(max_length=100,blank=True, null=True)
@@ -166,3 +168,17 @@ class UserEnquiry(CommonAbstractModel):
                                     max_length=200,
                                     default=MUSIC_TYPE['LIVE-DJ'])
     whatsapp_no = models.CharField(max_length=100,blank=True, null=True)
+
+
+class UserEnquiryStatus(CommonAbstractModel):
+    user_enquiry = models.ForeignKey(UserEnquiry, on_delete=models.CASCADE)
+    user_property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    club_owner_remark = models.CharField(max_length=100,blank=True, null=True)
+    club_owner_status = models.CharField(choices=ActionChoices.choices,
+                                    max_length=200,
+                                    default=STATUS['INITIAL'])
+    user_remark = models.CharField(max_length=100,blank=True, null=True)
+    user_status = models.CharField(choices=ActionChoices.choices,
+                                    max_length=200,
+                                    default=STATUS['INITIAL'])
+    

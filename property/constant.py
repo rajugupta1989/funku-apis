@@ -14,3 +14,9 @@ MUSIC_TYPE = {
     'LIVE-DJ': 'Live-DJ',
     'LIVE-MUSIC': 'Live-Music'
 }
+
+STATUS = {
+    'APPROVED':'Approved',
+    'REJECTED':'Rejected',
+    'INITIAL':'Initial'
+}

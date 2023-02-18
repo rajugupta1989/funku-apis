@@ -1018,42 +1018,50 @@ class UserEnquiryAPIView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            user = self.request.user
-            request.data["user"] = user.id
-            specific_club = self.request.data.get('specific_club',None)
-            type_of_place = self.request.data.get('type_of_place',None)
-            lat = self.request.data.get('lat',None)
-            long = self.request.data.get('long',None)
-            distance = self.request.data.get('distance',None)
-            if len(specific_club)>0:
-                serializer = self.serializer_class(data=request.data)
-            elif len(type_of_place)>0:
-                data = get_lat_long_calculated(lat,long,distance)
-                property= UserProperty.objects.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
-                .filter(long__gte=data.long2, long__lte=data.long1,property_type__in=type_of_place).values_list('id',flat=True)
-                if len(property)>0:
-                    request.data['specific_club']=property
-                    request.data['type_of_place']=type_of_place
+            with transaction.atomic():
+                user = self.request.user
+                request.data["user"] = user.id
+                specific_club = self.request.data.get('specific_club',None)
+                type_of_place = self.request.data.get('type_of_place',None)
+                lat = self.request.data.get('lat',None)
+                long = self.request.data.get('long',None)
+                distance = self.request.data.get('distance',None)
+                if len(specific_club)>0:
                     serializer = self.serializer_class(data=request.data)
+                elif len(type_of_place)>0:
+                    data = get_lat_long_calculated(lat,long,distance)
+                    property= UserProperty.objects.filter(lat__gte=data.lat1, lat__lte=data.lat2)\
+                    .filter(long__gte=data.long2, long__lte=data.long1,property_type__in=type_of_place).values_list('id',flat=True)
+                    if len(property)>0:
+                        request.data['specific_club']=property
+                        request.data['type_of_place']=type_of_place
+                        serializer = self.serializer_class(data=request.data)
+                    else:
+                        transaction.set_rollback(True)
+                        return Response(
+                        {"status": False, "message": "Your selected type of place is not fund in this area to send enquiry, please increase your distance"}, status=status.HTTP_200_OK
+                        )
                 else:
+                    transaction.set_rollback(True)
                     return Response(
-                    {"status": False, "message": "Your selected type of place is not fund in this area to send enquiry, please increase your distance"}, status=status.HTTP_200_OK
-                    )
-            else:
-                return Response(
-                {"status": False, "message": "specific_club or type_of_place is required in the list"}, status=status.HTTP_200_OK
-            )
-
-            if serializer.is_valid(raise_exception=False):
-                serializer.save()
-                return Response(
-                    {"status": True, "message":"Successfully created","results": serializer.data},
-                    status=status.HTTP_200_OK,
+                    {"status": False, "message": "specific_club or type_of_place is required in the list"}, status=status.HTTP_200_OK
                 )
 
-            return Response(
-                {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
-            )
+                if serializer.is_valid(raise_exception=False):
+                    serializer.save()
+                    for enq in request.data['specific_club']:
+                        enquiry_status = UserEnquiryStatus()
+                        enquiry_status.user_enquiry_id=serializer.data['id']
+                        enquiry_status.user_property_id = enq
+                        enquiry_status.save()
+                    return Response(
+                        {"status": True, "message":"Successfully created","results": serializer.data},
+                        status=status.HTTP_200_OK,
+                    )
+                transaction.set_rollback(True)
+                return Response(
+                    {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+                )
 
         except Exception as e:
             print(str(e))
@@ -1076,3 +1084,57 @@ class UserEnquiryAPIView(generics.ListCreateAPIView):
             dict = {"status": False,
                     "message": "something went wrong", "error": str(e)}
             return Response(dict, status=status.HTTP_200_OK)
+
+
+class ClubOwnerTakeActionOnUserEnquiryAPIView(generics.RetrieveUpdateAPIView):
+    """
+    Club owner take action on user enquiry
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserEnquiry.objects.all()
+    serializer_class = UserEnquiryForOwnerSerializer
+
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            club_owner_remark = self.request.data.get('club_owner_remark',None)
+            club_owner_status = self.request.data.get('club_owner_status',None)
+            user_property = self.request.data.get('user_property',None)
+            user_enquiry = self.request.data.get('user_enquiry',None)
+            enquiry_status = UserEnquiryStatus.objects.filter(user_property=user_property,user_enquiry=user_enquiry).last()
+            if enquiry_status is not None:
+                enquiry_status.club_owner_status = club_owner_status
+                enquiry_status.club_owner_remark = club_owner_remark
+                enquiry_status.save()
+                return Response(
+                    {"status": True, "message":"Successfully "+str(club_owner_status)},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {"status": True, "message":"Successfully not "+str(club_owner_status)},
+                    status=status.HTTP_200_OK,
+                )
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            property = self.queryset.filter(specific_club__user=user)
+            serializers = self.serializer_class(property,many=True)
+            response = {"status": True, "results": serializers.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {"status": False, "message": "Something Went Wrong","error":str(e)}
+            return Response(error, status=status.HTTP_200_OK)
+        
+

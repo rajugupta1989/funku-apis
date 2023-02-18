@@ -403,10 +403,13 @@ class ProfileDetailUpdateAPIView(generics.RetrieveUpdateAPIView):
         try:
             user = self.request.user
             request.data["user"] = user.id
+            page_count = self.request.data.get("page_count", None)
             profile = self.queryset.filter(user=user.id).last()
             serializer = self.serializer_class(instance=profile, data=request.data)
             if serializer.is_valid(raise_exception=False):
                 serializer.save()
+                if page_count is not None:
+                    Update_page_count(user, page_count)
                 return Response(
                     {"status": True, "results": serializer.data},
                     status=status.HTTP_200_OK,

@@ -18,3 +18,8 @@ class MusicPreferenceChoices(TextChoices):
     LIVE_MUSIC = MUSIC_TYPE['LIVE-MUSIC'], 'Live-Music'
 
 
+class ActionChoices(TextChoices):
+    APPROVED = STATUS['APPROVED'],'Approved'
+    REJECTED = STATUS['REJECTED'],'Rejected'
+    INITIAL = STATUS['INITIAL'],'Initial'
+

@@ -8,6 +8,7 @@ from property.models import (
     Deal,
     Party,
     UserEnquiry,
+    UserEnquiryStatus,
 )
 from master.serializers import PropertyTypeSerializer,OccasionSerializer,CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
 from account.serializers import UserProfileUpdateSerializer
@@ -155,11 +156,21 @@ class PartySerializer(serializers.ModelSerializer):
         })
         return serializer
 
+class UserEnquiryStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserEnquiryStatus
+        fields = "__all__"
 
+    def to_representation(self, instance):
+        serializer = super().to_representation(instance)
+        property_ = UserPropertySerializer(instance=instance.user_property).data
+        serializer.update({
+            "user_property": property_
+        })
+        return serializer
 
 
 class UserEnquirySerializer(serializers.ModelSerializer):
-    specific_club = UserPropertySerializer(read_only=True, many=True)
     class Meta:
         model = UserEnquiry
         fields = "__all__"
@@ -168,8 +179,34 @@ class UserEnquirySerializer(serializers.ModelSerializer):
         serializer = super().to_representation(instance)
         type_of_place = PropertyTypeSerializer(instance.type_of_place,many=True).data
         occasion = OccasionSerializer(instance.occasion).data
+        specific_club = UserPropertySerializer(instance.specific_club.all(), many=True).data
+        enquiry_obj= UserEnquiryStatus.objects.filter(user_enquiry=instance)
+        enquiry_status = UserEnquiryStatusSerializer(enquiry_obj,many=True).data
         serializer.update({
             "occasion": occasion,
-            "type_of_place":type_of_place
+            "type_of_place":type_of_place,
+            "specific_club":specific_club,
+            "enquiry_status":enquiry_status
+        })
+        return serializer
+
+
+
+
+class UserEnquiryForOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserEnquiry
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        serializer = super().to_representation(instance)
+        type_of_place = PropertyTypeSerializer(instance.type_of_place,many=True).data
+        occasion = OccasionSerializer(instance.occasion).data
+        enquiry_obj= UserEnquiryStatus.objects.filter(user_enquiry=instance)
+        enquiry_status = UserEnquiryStatusSerializer(enquiry_obj,many=True).data
+        serializer.update({
+            "occasion": occasion,
+            "type_of_place":type_of_place,
+            "enquiry_status":enquiry_status
         })
         return serializer
