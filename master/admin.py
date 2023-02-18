@@ -20,6 +20,7 @@ from master.models import (
     BrandType,
     DealType,
     EntryType,
+    Occasion,
 )
 
 # Register your models here.
