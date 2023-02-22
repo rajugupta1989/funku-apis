@@ -6,7 +6,7 @@ from django.utils.text import gettext_lazy as _
 
 from common.core.validators import validate_user
 from account.models import User, Role, userProfile,userProfileDetail,FileRepo
-
+from master.serializers import genderSerializer
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -55,13 +55,17 @@ class UserLoginSerializer(serializers.ModelSerializer):
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField(read_only=True)
+    profile_detail = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = User
-        fields = ('id','first_name', 'last_name', 'role','email','mobile','page_count','profile')
+        fields = ('id','first_name', 'last_name', 'role','email','mobile','page_count','profile','profile_detail')
 
     def get_profile(self, instance):
         profile_ins = userProfile.objects.filter(user=instance.id).last()
         return userProfileSerializer(instance=profile_ins).data
+    def get_profile_detail(self, instance):
+        profile_ins = userProfileDetail.objects.filter(user=instance.id).last()
+        return userProfileDetailSerializer(instance=profile_ins).data
     
 
 
@@ -82,10 +86,12 @@ class userProfileDetailSerializer(serializers.ModelSerializer):
         music = instance.music.all().values("id", "name","image")
         drink = instance.drink.all().values("id", "name","image")
         bar = instance.bar.all().values("id", "name","image")
+        gender = genderSerializer(instance.gender).data
         serializer.update({
             "music": music,
             "drink": drink,
-            "bar": bar
+            "bar": bar,
+            "gender":gender
         })
         return serializer
 
