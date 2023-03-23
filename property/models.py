@@ -166,7 +166,7 @@ class UserEnquiry(CommonAbstractModel):
                                     default=DRINK_TYPE['NON-ALCOHOLIC'])
     music_preference = models.CharField(choices=MusicPreferenceChoices.choices,
                                     max_length=200,
-                                    default=MUSIC_TYPE['LIVE-DJ'])
+                                    default=MUSIC_TYPE['LIVE DJ'])
     whatsapp_no = models.CharField(max_length=100,blank=True, null=True)
 
 
@@ -174,6 +174,8 @@ class UserEnquiryStatus(CommonAbstractModel):
     user_enquiry = models.ForeignKey(UserEnquiry, on_delete=models.CASCADE)
     user_property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
     club_owner_remark = models.CharField(max_length=100,blank=True, null=True)
+    club_owner_quotation = models.CharField(max_length=100,blank=True, null=True)
+    token_amount = models.CharField(max_length=100,blank=True, null=True)
     club_owner_status = models.CharField(choices=ActionChoices.choices,
                                     max_length=200,
                                     default=STATUS['INITIAL'])

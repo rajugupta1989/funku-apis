@@ -1102,10 +1102,14 @@ class ClubOwnerTakeActionOnUserEnquiryAPIView(generics.RetrieveUpdateAPIView):
             club_owner_status = self.request.data.get('club_owner_status',None)
             user_property = self.request.data.get('user_property',None)
             user_enquiry = self.request.data.get('user_enquiry',None)
+            token_amount = self.request.data.get('token_amount',None)
+            club_owner_quotation = self.request.data.get('club_owner_quotation',None)
             enquiry_status = UserEnquiryStatus.objects.filter(user_property=user_property,user_enquiry=user_enquiry).last()
             if enquiry_status is not None:
                 enquiry_status.club_owner_status = club_owner_status
                 enquiry_status.club_owner_remark = club_owner_remark
+                enquiry_status.token_amount = token_amount
+                enquiry_status.club_owner_quotation = club_owner_quotation
                 enquiry_status.save()
                 return Response(
                     {"status": True, "message":"Successfully "+str(club_owner_status)},
@@ -1137,4 +1141,45 @@ class ClubOwnerTakeActionOnUserEnquiryAPIView(generics.RetrieveUpdateAPIView):
             error = {"status": False, "message": "Something Went Wrong","error":str(e)}
             return Response(error, status=status.HTTP_200_OK)
         
+
+class UserTakeActionOnUserEnquiryAPIView(generics.RetrieveUpdateAPIView):
+    """
+    User take action on user enquiry
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserEnquiry.objects.all()
+    serializer_class = UserEnquiryForOwnerSerializer
+
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            user_remark = self.request.data.get('user_remark',None)
+            user_status = self.request.data.get('user_status',None)
+            user_property = self.request.data.get('user_property',None)
+            user_enquiry = self.request.data.get('user_enquiry',None)
+            enquiry_status = UserEnquiryStatus.objects.filter(user_property=user_property,user_enquiry=user_enquiry).last()
+            if enquiry_status is not None:
+                enquiry_status.user_status = user_status
+                enquiry_status.user_remark = user_remark
+                enquiry_status.save()
+                return Response(
+                    {"status": True, "message":"Successfully "+str(user_status)},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {"status": True, "message":"Successfully not "+str(user_status)},
+                    status=status.HTTP_200_OK,
+                )
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
 

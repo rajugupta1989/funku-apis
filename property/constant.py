@@ -11,12 +11,13 @@ DRINK_TYPE = {
 
 
 MUSIC_TYPE = {
-    'LIVE-DJ': 'Live-DJ',
-    'LIVE-MUSIC': 'Live-Music'
+    'LIVE DJ': 'Live DJ',
+    'LIVE MUSIC': 'Live Music'
 }
 
 STATUS = {
     'APPROVED':'Approved',
     'REJECTED':'Rejected',
-    'INITIAL':'Initial'
+    'INITIAL':'Initial',
+    'CANCEL':'Cancel'
 }

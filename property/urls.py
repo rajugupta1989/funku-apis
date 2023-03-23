@@ -30,6 +30,7 @@ urlpatterns = [
     
     path(r'get_property_by_lat_long/', views.GetPropertyByLatLongAPIView.as_view(), name='get_property_by_lat_long'),
     path(r'user_enquiry/', views.UserEnquiryAPIView.as_view(), name='user_enquiry'),
+    path(r'user_take_action_on_user_enquiry/', views.UserTakeActionOnUserEnquiryAPIView.as_view(), name='user_take_action_on_user_enquiry'),
     path(r'club_owner_take_action_on_user_enquiry/', views.ClubOwnerTakeActionOnUserEnquiryAPIView.as_view(), name='club_owner_take_action_on_user_enquiry'),
 
 

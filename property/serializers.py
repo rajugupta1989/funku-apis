@@ -41,6 +41,7 @@ class UserPropertySerializer(serializers.ModelSerializer):
         country = CountrySerializer(instance=instance.country).data
         state = StateSerializer(instance=instance.state).data
         city = CitySerializer(instance=instance.city).data
+        property_type = PropertyTypeSerializer(instance=instance.property_type).data
         serializer.update(
             {
                 "payment": payment,
@@ -49,7 +50,8 @@ class UserPropertySerializer(serializers.ModelSerializer):
                 "manager":manager,
                 "country":country,
                 "state":state,
-                "city":city
+                "city":city,
+                "property_type":property_type
 
 
             }

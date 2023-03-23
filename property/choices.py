@@ -14,8 +14,8 @@ class DrinkPreferenceChoices(TextChoices):
    
 
 class MusicPreferenceChoices(TextChoices):
-    LIVE_DJ = MUSIC_TYPE['LIVE-DJ'], 'Live-DJ'
-    LIVE_MUSIC = MUSIC_TYPE['LIVE-MUSIC'], 'Live-Music'
+    LIVE_DJ = MUSIC_TYPE['LIVE DJ'], 'Live DJ'
+    LIVE_MUSIC = MUSIC_TYPE['LIVE MUSIC'], 'Live Music'
 
 
 class ActionChoices(TextChoices):
