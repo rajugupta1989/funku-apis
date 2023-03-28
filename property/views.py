@@ -1004,7 +1004,70 @@ class GetPropertyByLatLongAPIView(generics.ListAPIView):
 
 
 
+class GetUpdateUserEnquiryAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Get user enquiry and update
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserEnquiry.objects.all()
+    serializer_class = UserEnquirySerializer
 
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = self.request.user
+            party = self.queryset.get(pk=kwargs["pk"],user=user_id)
+            serializer = self.serializer_class(party)
+            response = {"status": True, "results": serializer.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            dict = {"status": False,
+                    "message": "something went wrong", "error": str(e)}
+            return Response(dict, status=status.HTTP_200_OK)
+        
+    def delete(self, request, *args, **kwargs):
+        try:
+            user_id = self.request.user
+            party = self.queryset.get(pk=kwargs["pk"],user=user_id)
+            party.delete()
+            dict = {"status": True,
+                    "message": "Enquiry deleted Successfully"}
+            return Response(dict, status=status.HTTP_200_OK)
+        except Exception as e:
+            dict = {"status": False,
+                    "message": "something went wrong", "error": str(e)}
+            return Response(dict, status=status.HTTP_200_OK)
+        
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            user_remark = self.request.data.get('user_remark',None)
+            user_status = self.request.data.get('user_status',None)
+            user_enquiry = kwargs["pk"]
+            enquiry_status = UserEnquiryStatus.objects.filter(user_enquiry=user_enquiry)
+            print('enquiry_status',enquiry_status)
+            for data in enquiry_status:
+                print('datatata',data)
+                data.user_status = user_status
+                data.user_remark = user_remark
+                data.save()
+            return Response(
+                {"status": True, "message":"Successfully "+str(user_status)},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+
+
+            
 
 class UserEnquiryAPIView(generics.ListCreateAPIView):
     """
