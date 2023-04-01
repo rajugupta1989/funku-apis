@@ -147,6 +147,7 @@ class Party(CommonAbstractModel):
 
 
 class UserEnquiry(CommonAbstractModel):
+    enquiry_status = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     lat = models.FloatField(blank=True, null=True)
     long = models.FloatField(blank=True, null=True)
