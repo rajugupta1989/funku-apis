@@ -1042,11 +1042,11 @@ class GetUpdateUserEnquiryAPIView(generics.RetrieveUpdateDestroyAPIView):
     def patch(self, request, *args, **kwargs):
         try:
             user_remark = self.request.data.get('user_remark',None)
-            enquiry_status = self.request.data.get('enquiry_status',None)
+            user_enquiry_status = self.request.data.get('user_enquiry_status',None)
             user_enquiry = kwargs["pk"]
             User_enquiry = UserEnquiry.objects.get(id=user_enquiry)
             if User_enquiry is not None:
-                User_enquiry.enquiry_status = enquiry_status
+                User_enquiry.user_enquiry_status = user_enquiry_status
                 User_enquiry.save()
             enquiry_status = UserEnquiryStatus.objects.filter(user_enquiry=user_enquiry)
             for data in enquiry_status:
