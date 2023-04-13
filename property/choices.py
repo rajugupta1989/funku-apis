@@ -5,12 +5,14 @@ from property.constant import *
 class MealPreferenceChoices(TextChoices):
     VEGETARIAN = MEAL_TYPE['VEGETARIAN'], 'Vegetarian'
     NON_VEGETARIAN = MEAL_TYPE['NON-VEGETARIAN'], 'Non-Vegetarian'
+    BOTH = MEAL_TYPE['BOTH'], 'Both'
     
 
 
 class DrinkPreferenceChoices(TextChoices):
     ALCOHOLIC = DRINK_TYPE['ALCOHOLIC'], 'Alcoholic'
     non_ALCOHOLIC = DRINK_TYPE['NON-ALCOHOLIC'], 'Non-Alcoholic'
+    BOTH = DRINK_TYPE['BOTH'], 'Both'
    
 
 class MusicPreferenceChoices(TextChoices):

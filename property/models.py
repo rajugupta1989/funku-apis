@@ -157,7 +157,7 @@ class UserEnquiry(CommonAbstractModel):
     table_book = models.BooleanField(default=False)
     date = models.DateTimeField(null=True, blank=True)
     no_of_guest = models.CharField(max_length=100,blank=True, null=True)
-    occasion = models.ForeignKey(Occasion, on_delete=models.CASCADE)
+    occasion = models.ForeignKey(Occasion, on_delete=models.CASCADE,blank=True, null=True)
     budget = models.CharField(max_length=100,blank=True, null=True)
     meal_preference = models.CharField(choices=MealPreferenceChoices.choices,
                                     max_length=200,
