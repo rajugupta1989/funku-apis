@@ -1,6 +1,7 @@
 from django.urls import path
 from property import views
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path(r'profile_image/', views.PropertyProfileImageAPIView.as_view(), name='profile_image'),
@@ -36,3 +37,6 @@ urlpatterns = [
 
 
 ]
+
+urlpatterns += static(settings.MEDIA_URL,
+                      document_root=settings.MEDIA_ROOT)
