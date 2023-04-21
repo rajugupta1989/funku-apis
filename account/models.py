@@ -75,7 +75,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     jwt_secret = models.UUIDField(default=uuid.uuid4)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True)
+    role = models.ManyToManyField(Role,blank=True, null=True)
     first_name = models.CharField(
         _("first name"),
         max_length=30,

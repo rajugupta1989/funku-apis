@@ -66,6 +66,13 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     def get_profile_detail(self, instance):
         profile_ins = userProfileDetail.objects.filter(user=instance.id).last()
         return userProfileDetailSerializer(instance=profile_ins).data
+    def to_representation(self, instance):
+        serializer = super().to_representation(instance)
+        role = instance.role.all().values("id", "name")
+        serializer.update({
+            "role": role
+        })
+        return serializer
     
 
 

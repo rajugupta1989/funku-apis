@@ -174,14 +174,16 @@ class Verify(generics.CreateAPIView):
                         if user_data is None:
                             self.model.objects.create_user(
                                 mobile=mobile,
-                                email=mobile + "@xyz.com",
+                                email=mobile + "@test.com",
                                 password=mobile,
                                 page_count=0
+                                
                             )
                         kwargs = CommonHelper.email_or_mobile(mobile)
                         credentials = {"password": mobile}
                         credentials.update(**kwargs)
                         user = authenticate(**credentials)
+                        user.role.set(['1'])
                         tokendata = {
                             "token": user.token,
                             "page_count": user.page_count,
