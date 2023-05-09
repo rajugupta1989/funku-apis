@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from account.models import FileRepo
+from master.models import PropertyFacilities
 from property.models import (
     UserPropertyThumb,
     UserProperty,
@@ -10,8 +12,8 @@ from property.models import (
     UserEnquiry,
     UserEnquiryStatus,
 )
-from master.serializers import PropertyTypeSerializer,OccasionSerializer,CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
-from account.serializers import UserProfileUpdateSerializer
+from master.serializers import PropertyFacilitiesSerializer, PropertyTypeSerializer,OccasionSerializer,CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
+from account.serializers import FileRepoSerializer, UserProfileUpdateSerializer
 
 
 class UserPropertyThumbSerializer(serializers.ModelSerializer):
@@ -66,9 +68,8 @@ class PropertyAvailableFacilitiesSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         serializer = super().to_representation(instance)
-        facilities = instance.facilities.all().values(
-            "id", "name", "description", "image"
-        )
+        facility = PropertyFacilities.objects.filter(id__in=instance.facilities.all())
+        facilities = PropertyFacilitiesSerializer(facility, many=True).data
         serializer.update(
             {
                 "facilities": facilities,
@@ -84,9 +85,12 @@ class PropertySocialDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         serializer = super().to_representation(instance)
-        exterior_gallery = instance.exterior_gallery.all().values("id", "title","description","file")
-        interior_gallery = instance.interior_gallery.all().values("id", "title","description","file")
-        menu_place = instance.menu_place.all().values("id", "title","description","file")
+        exterior = FileRepo.objects.filter(id__in=instance.exterior_gallery.all())
+        interior = FileRepo.objects.filter(id__in=instance.interior_gallery.all())
+        menu = FileRepo.objects.filter(id__in=instance.menu_place.all())
+        exterior_gallery = FileRepoSerializer(exterior, many=True).data
+        interior_gallery = FileRepoSerializer(interior, many=True).data
+        menu_place = FileRepoSerializer(menu, many=True).data
         promoter = instance.promoter.all().values("id", "email","first_name","last_name")
         serializer.update({
             "exterior_gallery": exterior_gallery,
