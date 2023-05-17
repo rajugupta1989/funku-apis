@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from account.models import FileRepo
+from account.models import FileRepo, User
 from master.models import PropertyFacilities
 from property.models import (
     UserPropertyThumb,
@@ -13,7 +13,7 @@ from property.models import (
     UserEnquiryStatus,
 )
 from master.serializers import PropertyFacilitiesSerializer, PropertyTypeSerializer,OccasionSerializer,CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
-from account.serializers import FileRepoSerializer, UserProfileUpdateSerializer
+from account.serializers import FileRepoSerializer, UserProfileUpdateSerializer, userProfileDetailSerializer
 
 
 class UserPropertyThumbSerializer(serializers.ModelSerializer):
@@ -210,7 +210,10 @@ class UserEnquiryForOwnerSerializer(serializers.ModelSerializer):
         occasion = OccasionSerializer(instance.occasion).data
         enquiry_obj= UserEnquiryStatus.objects.filter(user_enquiry=instance)
         enquiry_status = UserEnquiryStatusSerializer(enquiry_obj,many=True).data
+        user_ins = User.objects.get(id=instance.user.id)
+        user_data = UserProfileUpdateSerializer(user_ins).data
         serializer.update({
+            "user": user_data,
             "occasion": occasion,
             "type_of_place":type_of_place,
             "enquiry_status":enquiry_status
