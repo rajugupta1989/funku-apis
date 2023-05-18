@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from account.models import FileRepo, User
-from master.models import PropertyFacilities
+from master.models import PropertyFacilities, music_type
 from property.models import (
     UserPropertyThumb,
     UserProperty,
@@ -12,7 +12,7 @@ from property.models import (
     UserEnquiry,
     UserEnquiryStatus,
 )
-from master.serializers import PropertyFacilitiesSerializer, PropertyTypeSerializer,OccasionSerializer,CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer
+from master.serializers import PropertyFacilitiesSerializer, PropertyTypeSerializer,OccasionSerializer,CountrySerializer,StateSerializer,CitySerializer,DealTypeSerializer,FlashDealForSerializer,EntryTypeSerializer,BrandTypeSerializer,drink_typeSerializer, music_typeSerializer
 from account.serializers import FileRepoSerializer, UserProfileUpdateSerializer, userProfileDetailSerializer
 
 
@@ -153,12 +153,18 @@ class PartySerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         serializer = super().to_representation(instance)
         terms_conditions = instance.terms_conditions.all().values("id", "name")
-        image = instance.image.all().values("id", "title","description","file")
+        image = FileRepo.objects.filter(id__in=instance.image.all())
+        image_serializer = FileRepoSerializer(image, many=True).data
         property_ = UserPropertySerializer(instance=instance.property).data
+        entry_type = EntryTypeSerializer(instance=instance.entry_type).data
+        music_inst = music_type.objects.filter(id__in=instance.music.all())
+        music = music_typeSerializer(music_inst,many=True).data
         serializer.update({
             "property": property_,
             "terms_conditions":terms_conditions,
-            "image":image
+            "image":image_serializer,
+            "entry_type":entry_type,
+            "music":music
         })
         return serializer
 

@@ -15,6 +15,7 @@ from master.models import (
     BrandType,
     DealType,
     EntryType,
+    music_type,
     property_type,
     Occasion
 )
@@ -141,8 +142,11 @@ class Party(CommonAbstractModel):
     image = models.ManyToManyField(
         FileRepo, blank=True, related_name="image"
     )
-
-
+    entry_type = models.ForeignKey(
+        EntryType, on_delete=models.CASCADE, blank=True, null=True
+    )
+    discount = models.CharField(max_length=100,blank=True, null=True)
+    music = models.ManyToManyField(music_type,blank=True)
 
 
 

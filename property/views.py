@@ -1078,7 +1078,7 @@ class UserEnquiryAPIView(generics.ListCreateAPIView):
 
     permission_classes = (IsAuthenticated,)
     authentication_class = JSONWebTokenAuthentication
-    queryset = UserEnquiry.objects.all()
+    queryset = UserEnquiry.objects.all().order_by("-created_date")
     serializer_class = UserEnquirySerializer
 
     def post(self, request, *args, **kwargs):
@@ -1157,7 +1157,7 @@ class ClubOwnerTakeActionOnUserEnquiryAPIView(generics.RetrieveUpdateAPIView):
     """
     permission_classes = (IsAuthenticated,)
     authentication_class = JSONWebTokenAuthentication
-    queryset = UserEnquiry.objects.all()
+    queryset = UserEnquiry.objects.all().order_by("-created_date")
     serializer_class = UserEnquiryForOwnerSerializer
 
 
