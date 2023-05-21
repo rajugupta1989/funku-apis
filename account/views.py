@@ -601,7 +601,20 @@ class FilesRepoAPIView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            serializer = self.serializer_class(data=request.data,)
+            data1 = self.request.data.getlist('file')
+            bulk_data = list()
+            file_type = self.request.data.get("file_type", None)
+            if file_type is None:
+                file_type = "others"
+            for f in data1:
+                temp = dict()
+                temp['file'] = f
+                temp["title"] = self.request.data.get("title", None)
+                temp["description"] = self.request.data.get("description", None)
+                temp["file_type"] = file_type
+                temp["created_by"] = self.request.user.id
+                bulk_data.append(temp)
+            serializer = self.serializer_class(data=bulk_data,many=True)
             if serializer.is_valid():
                 serializer.save()
                 response = {
