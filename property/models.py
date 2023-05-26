@@ -99,6 +99,9 @@ class FlashDealDetail(CommonAbstractModel):
     brand = models.ForeignKey(
         BrandType, on_delete=models.CASCADE, blank=True, null=True
     )
+    entry_price = models.CharField(max_length=100,blank=True, null=True)
+    discount = models.CharField(max_length=100,blank=True, null=True)
+    cover_charge = models.CharField(max_length=100,blank=True, null=True)
 
 
 class Deal(CommonAbstractModel):
