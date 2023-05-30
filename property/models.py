@@ -3,6 +3,7 @@ from django.db import models
 from common.abstract_model import CommonAbstractModel
 from account.models import User, FileRepo
 from artist.models import UserAtrist
+from ckeditor.fields import RichTextField
 from master.models import (
     Country,
     State,
@@ -192,3 +193,20 @@ class UserEnquiryStatus(CommonAbstractModel):
                                     max_length=200,
                                     default=STATUS['INITIAL'])
     
+
+
+
+
+
+
+class UserBooking(CommonAbstractModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    qr_code = RichTextField(blank=True, null=True)
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE,blank=True, null=True)
+    flash_deal = models.ForeignKey(FlashDealDetail, on_delete=models.CASCADE,blank=True, null=True)
+    remark = models.CharField(max_length=100,blank=True, null=True)
+    booking_code = models.CharField(max_length=100,blank=True, null=True)
+    booking_status = models.BooleanField(default=False)
+    booking_status_from_owner = models.BooleanField(default=False)
+    date = models.DateTimeField(null=True, blank=True)

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from account.models import FileRepo, User
 from master.models import PropertyFacilities, music_type
 from property.models import (
+    UserBooking,
     UserPropertyThumb,
     UserProperty,
     PropertyAvailableFacilities,
@@ -223,5 +224,32 @@ class UserEnquiryForOwnerSerializer(serializers.ModelSerializer):
             "occasion": occasion,
             "type_of_place":type_of_place,
             "enquiry_status":enquiry_status
+        })
+        return serializer
+    
+
+class UserBookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserBooking
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        serializer = super().to_representation(instance)
+        user_ins = User.objects.get(id=instance.user.id)
+        user_data = UserProfileUpdateSerializer(user_ins).data
+        property_ = UserPropertySerializer(instance=instance.property).data
+        if instance.deal:
+            deal = DealSerializer(instance.deal).data
+        else:
+            deal = None
+        if instance.flash_deal:
+            flash_deal = FlashDealDetailSerializer(instance.flash_deal).data
+        else:
+            flash_deal = None
+        serializer.update({
+            "user": user_data,
+            "property": property_,
+            "deal": deal,
+            "flash_deal":flash_deal
         })
         return serializer

@@ -36,6 +36,10 @@ urlpatterns = [
     path(r'club_owner_take_action_on_user_enquiry/', views.ClubOwnerTakeActionOnUserEnquiryAPIView.as_view(), name='club_owner_take_action_on_user_enquiry'),
 
 
+
+    path(r'user_booking/', views.UserBookingAPIView.as_view(), name='user_booking'),
+    path(r'owner_booking/', views.OwnerBookingAPIView.as_view(), name='owner_booking'),
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL,

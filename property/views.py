@@ -12,9 +12,11 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import logout
 from django.contrib.auth import login
 from django.db import transaction, IntegrityError
-from property.lat_long_calculator import get_lat_long_calculated
+from property.lat_long_calculator import generate_qr_code, get_lat_long_calculated
 import json
 import datetime
+import base64
+import uuid
 from property.models import *
 from property.serializers import *
 # from django_filters.rest_framework import DjangoFilterBackend
@@ -1248,3 +1250,119 @@ class UserTakeActionOnUserEnquiryAPIView(generics.RetrieveUpdateAPIView):
 
 
 
+class UserBookingAPIView(generics.ListCreateAPIView):
+    """
+    User booking
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserBooking.objects.all()
+    serializer_class = UserBookingSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            request.data["user"] = user.id
+            booking_code = "Book" + str(uuid.uuid4().int)[:4]
+            request.data['booking_code']=booking_code 
+            # key = Fernet.generate_key()
+            # fernet = Fernet(key)
+            message = str(request.data)
+            encMessage = base64.b64encode(message.encode("ascii","strict")) 
+            print('encMessage',encMessage)
+            # decMessage = fernet.decrypt(encMessage).decode()
+            # print('decMessage',decMessage)
+            respon_ = generate_qr_code(encMessage)    
+            request.data['qr_code'] = respon_
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid(raise_exception=False):
+                serializer.save()
+                return Response(
+                    {"status": True, "message":"Successfully Booked","results": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = self.request.user
+            party = self.queryset.filter(user=user_id)
+            page = self.paginate_queryset(party)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+        except Exception as e:
+            dict = {"status": False,
+                    "message": "something went wrong", "error": str(e)}
+            return Response(dict, status=status.HTTP_200_OK)
+        
+
+
+class OwnerBookingAPIView(generics.RetrieveUpdateAPIView):
+    """
+    Owner booking
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserBooking.objects.all()
+    serializer_class = UserBookingSerializer
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            # request.data["user"] = user.id
+            message = self.request.data.get("data", None)
+            msg=base64.b64decode(message)
+            decMessage=msg.decode('ascii','strict') 
+            print('data_check',decMessage)
+            dic_key = eval(decMessage)
+            check_data = UserBooking.objects.filter(booking_code=dic_key['booking_code']).last()
+            if check_data is not None:
+                check_data.booking_status_from_owner = True
+                check_data.save()
+                return Response(
+                    {"status": True, "message":"Successfully done"},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {"status": False, "message":"QR code is not correct or expired"},
+                    status=status.HTTP_200_OK,
+                )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = self.request.user
+            property_id = UserProperty.objects.filter(user=user_id).values_list('id',flat=True)
+            party = self.queryset.filter(property_id__in=property_id)
+            page = self.paginate_queryset(party)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+        except Exception as e:
+            dict = {"status": False,
+                    "message": "something went wrong", "error": str(e)}
+            return Response(dict, status=status.HTTP_200_OK)
