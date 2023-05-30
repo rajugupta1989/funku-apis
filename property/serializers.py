@@ -246,10 +246,16 @@ class UserBookingSerializer(serializers.ModelSerializer):
             flash_deal = FlashDealDetailSerializer(instance.flash_deal).data
         else:
             flash_deal = None
+        if instance.party:
+            party = PartySerializer(instance.party).data
+        else:
+            party = None
+
         serializer.update({
             "user": user_data,
             "property": property_,
             "deal": deal,
-            "flash_deal":flash_deal
+            "flash_deal":flash_deal,
+            "party":party
         })
         return serializer

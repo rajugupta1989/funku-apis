@@ -203,6 +203,7 @@ class UserBooking(CommonAbstractModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
     qr_code = RichTextField(blank=True, null=True)
+    party = models.ForeignKey(Party, on_delete=models.CASCADE,blank=True, null=True)
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE,blank=True, null=True)
     flash_deal = models.ForeignKey(FlashDealDetail, on_delete=models.CASCADE,blank=True, null=True)
     remark = models.CharField(max_length=100,blank=True, null=True)
