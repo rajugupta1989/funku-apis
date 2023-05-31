@@ -5,6 +5,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path(r'role/', views.RoleAPIView.as_view(), name='role'),
+    path(r'send_otp_mail/', views.SendOtpOnMailAPIView.as_view(), name='send_otp_mail'),
+    path(r'verify_mail_otp/', views.MailOtpVerifiedAPIView.as_view(), name='verify_mail_otp'),
     path(r'send_otp/', views.Send_OtpAPIView.as_view(), name='send_otp'),
     path(r'verify/', views.Verify.as_view(), name='verify'),
     path(r'profile/', views.ProfileAPIView.as_view(), name='profile'),

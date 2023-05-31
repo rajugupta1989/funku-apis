@@ -1,3 +1,5 @@
+import math
+import random
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import permissions
@@ -19,6 +21,9 @@ import base64
 import uuid
 from property.models import *
 from property.serializers import *
+from django.conf import settings
+from django.core.mail import send_mail
+import pytz
 # from django_filters.rest_framework import DjangoFilterBackend
 # from rest_framework import filters
 # from property.filters import DealFilter
@@ -1330,7 +1335,7 @@ class OwnerBookingAPIView(generics.RetrieveUpdateAPIView):
             decMessage=msg.decode('ascii','strict') 
             print('data_check',decMessage)
             dic_key = eval(decMessage)
-            check_data = UserBooking.objects.filter(booking_code=dic_key['booking_code']).last()
+            check_data = UserBooking.objects.filter(booking_code=dic_key['booking_code'],booking_status_from_owner=False).last()
             if check_data is not None:
                 check_data.booking_status_from_owner = True
                 check_data.save()
@@ -1366,3 +1371,140 @@ class OwnerBookingAPIView(generics.RetrieveUpdateAPIView):
             dict = {"status": False,
                     "message": "something went wrong", "error": str(e)}
             return Response(dict, status=status.HTTP_200_OK)
+        
+
+
+def generateOTP() :
+    digits = "0123456789"
+    OTP = ""
+    for i in range(4) :
+        OTP += digits[math.floor(random.random() * 10)]
+    return OTP
+
+
+class SendOtpOnMailPropertyAPIView(generics.CreateAPIView):
+    """
+    send otp on the mail property
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserProperty.objects.all()
+    serializer_class = UserPropertySerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            email = self.request.data.get("email", None)
+            property = self.request.data.get("property", None)
+            email_check = UserProperty.objects.filter(user_id=user.id,id=property, email=email,is_emailVerify=1).last()
+            if email_check is not None:
+                return Response(
+                    {"status": False, "message": "Email already exist with emailVerified"},
+                    status=status.HTTP_200_OK,
+                )
+            user_data = self.queryset.filter(user_id=user.id,id=property).last()
+            current_time = datetime.datetime.now()
+            future_time = current_time + datetime.timedelta(minutes=5)
+            future_time1 = future_time.replace(tzinfo=pytz.utc)
+            otp = generateOTP()
+            subject = 'OTP Verification Funku'
+            message = 'Hi,\r\n Please enter the below mentioned OTP for email verified. \r\n '+ str(otp)
+            recepient = email
+            mail_response = send_mail(subject, 
+                message, settings.EMAIL_HOST_USER, [recepient], fail_silently = False)
+            if mail_response:
+                user_data.email = email
+                user_data.save()
+                chech_data = UserPropertyMailVerified.objects.filter(user_id=user.id,property_id=property).last()
+                if chech_data is not None:
+                    chech_data.user_id = user.id
+                    chech_data.property_id = property
+                    chech_data.email_otp_valid = future_time1
+                    chech_data.email_otp = otp
+                    chech_data.save()
+                else:
+                    chech_data = UserPropertyMailVerified()
+                    chech_data.user_id = user.id
+                    chech_data.property_id = property
+                    chech_data.email_otp_valid = future_time1
+                    chech_data.email_otp = otp
+                    chech_data.save()
+
+                return Response(
+                    {"status": True, "message": "OTP has been sent to your email address. Please check your mail"},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {"status": False, "message": "Please try again."}, status=status.HTTP_200_OK
+                )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+
+
+class MailOtpVerifiedPropertyAPIView(generics.CreateAPIView):
+    """
+    otp verified the mail property
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserProperty.objects.all()
+    serializer_class = UserPropertySerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            email = self.request.data.get("email", None)
+            otp = self.request.data.get("otp", None)
+            property = self.request.data.get("property", None)
+            email_check = UserProperty.objects.filter(user_id=user.id,id=property, email=email,is_emailVerify=1).last()
+            if email_check is not None:
+                return Response(
+                    {"status": False, "message": "Email already exist with emailVerified"},
+                    status=status.HTTP_200_OK,
+                )
+            user_data = self.queryset.filter(user_id=user.id,id=property, email=email).last()
+            if user_data is None:
+                return Response(
+                    {"status": False, "message": "Email is incorrect"}, status=status.HTTP_200_OK
+                )
+            chech_data = UserPropertyMailVerified.objects.filter(user_id=user.id,property_id=property).last()
+            if chech_data is None:
+                return Response(
+                    {"status": False, "message": "Please send otp on the mail before verify"}, status=status.HTTP_200_OK
+                )
+            current_time = datetime.datetime.now()
+            current_time1 = current_time.replace(tzinfo=pytz.utc)
+            old_date_time = chech_data.email_otp_valid
+            old_date_time1 = old_date_time.replace(tzinfo=pytz.utc)
+            if current_time1 >= old_date_time1:
+                return Response(
+                    {"status": False, "message": "OTP expired."}, status=status.HTTP_200_OK
+                )
+            if otp != chech_data.email_otp:
+                return Response(
+                    {"status": False, "message": "OTP is incorrect. please try again"}, status=status.HTTP_200_OK
+                )
+            user_data.is_emailVerify = 1
+            user_data.save()    
+            return Response(
+                {"status": True, "message": "Email verified"},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)

@@ -60,6 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     mobile_otp = models.CharField(max_length=11, blank=True, null=True)
     email_otp = models.CharField(max_length=11, blank=True, null=True)
+    email_otp_valid = models.DateTimeField(null=True, blank=True)
     # check mobile verified or not after registrations
     is_mobileVerify = models.IntegerField(default=0)
     # check email verified or not after registrations

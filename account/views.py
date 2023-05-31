@@ -1,6 +1,9 @@
 # Create your views here.
 
 import email
+import math
+from datetime import datetime, timedelta
+import random
 from re import T
 import uuid
 from rest_framework.response import Response
@@ -36,6 +39,9 @@ from account.utils import sent_sms, otp_verify
 from rest_framework import serializers
 from account import models
 from django.db.models import Q
+from django.conf import settings
+from django.core.mail import send_mail
+import pytz
 
 
 
@@ -174,7 +180,7 @@ class Verify(generics.CreateAPIView):
                         if user_data is None:
                             self.model.objects.create_user(
                                 mobile=mobile,
-                                email=mobile + "@test.com",
+                                email=mobile + "@demo.com",
                                 password=mobile,
                                 page_count=0
                                 
@@ -211,6 +217,123 @@ class Verify(generics.CreateAPIView):
                 "error": str(e),
             }
             return Response(error, status=status.HTTP_200_OK)
+
+
+def generateOTP() :
+     digits = "0123456789"
+     OTP = ""
+     for i in range(4) :
+         OTP += digits[math.floor(random.random() * 10)]
+     return OTP
+
+
+class SendOtpOnMailAPIView(generics.CreateAPIView):
+    """
+    send otp on the mail
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = User.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            email = self.request.data.get("email", None)
+            email_check = User.objects.filter(~Q(id=user.id), email=email,is_emailVerify=1).last()
+            if email_check is not None:
+                return Response(
+                    {"status": False, "message": "Email already exist with emailVerified"},
+                    status=status.HTTP_200_OK,
+                )
+            user_data = self.queryset.get(id=user.id)
+            current_time = datetime.now()
+            future_time = current_time + timedelta(minutes=5)
+            future_time1 = future_time.replace(tzinfo=pytz.utc)
+            otp = generateOTP()
+            subject = 'OTP Verification Funku'
+            message = 'Hi,\r\n Please enter the below mentioned OTP for email verified. \r\n '+ str(otp)
+            recepient = email
+            mail_response = send_mail(subject, 
+                message, settings.EMAIL_HOST_USER, [recepient], fail_silently = False)
+            if mail_response:
+                user_data.email = email
+                user_data.email_otp_valid = future_time1
+                user_data.email_otp = otp
+                user_data.save()    
+                return Response(
+                    {"status": True, "message": "OTP has been sent to your email address. Please check your mail"},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {"status": False, "message": "Please try again."}, status=status.HTTP_200_OK
+                )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+
+
+class MailOtpVerifiedAPIView(generics.CreateAPIView):
+    """
+    otp verified the mail
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = User.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            email = self.request.data.get("email", None)
+            otp = self.request.data.get("otp", None)
+            email_check = User.objects.filter(~Q(id=user.id), email=email,is_emailVerify=1).last()
+            if email_check is not None:
+                return Response(
+                    {"status": False, "message": "Email already exist with emailVerified"},
+                    status=status.HTTP_200_OK,
+                )
+            user_data = self.queryset.filter(id=user.id,email=email).last()
+            if user_data is None:
+                return Response(
+                    {"status": False, "message": "Email is incorrect"}, status=status.HTTP_200_OK
+                )
+            current_time = datetime.now()
+            current_time1 = current_time.replace(tzinfo=pytz.utc)
+            old_date_time = user_data.email_otp_valid
+            old_date_time1 = old_date_time.replace(tzinfo=pytz.utc)
+            if current_time1 >= old_date_time1:
+                return Response(
+                    {"status": False, "message": "OTP expired."}, status=status.HTTP_200_OK
+                )
+            if otp != user_data.email_otp:
+                return Response(
+                    {"status": False, "message": "OTP is incorrect. please try again"}, status=status.HTTP_200_OK
+                )
+            user_data.is_emailVerify = 1
+            user_data.save()    
+            return Response(
+                {"status": True, "message": "Email verified"},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
 
 
 class ProfileAPIView(generics.RetrieveUpdateAPIView):

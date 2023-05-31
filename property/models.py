@@ -29,6 +29,7 @@ class UserProperty(CommonAbstractModel):
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.CharField(max_length=300, blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
+    is_emailVerify = models.IntegerField(default=0)
     pin_code = models.IntegerField(blank=True, null=True)
     country = models.ForeignKey(
         Country, on_delete=models.CASCADE, blank=True, null=True
@@ -46,6 +47,12 @@ class UserProperty(CommonAbstractModel):
     long = models.FloatField(blank=True, null=True)
     manager = models.ManyToManyField(User,related_name='manager', blank=True)
     listing_date = models.DateField(blank=True, null=True)
+
+class UserPropertyMailVerified(CommonAbstractModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    email_otp = models.CharField(max_length=11, blank=True, null=True)
+    email_otp_valid = models.DateTimeField(null=True, blank=True)
 
 
 class UserPropertyThumb(CommonAbstractModel):
