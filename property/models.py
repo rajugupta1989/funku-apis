@@ -50,7 +50,8 @@ class UserProperty(CommonAbstractModel):
 
 class UserPropertyMailVerified(CommonAbstractModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    # property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
     email_otp = models.CharField(max_length=11, blank=True, null=True)
     email_otp_valid = models.DateTimeField(null=True, blank=True)
 

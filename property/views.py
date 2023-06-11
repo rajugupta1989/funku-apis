@@ -128,9 +128,66 @@ class AddPropertyAPIView(generics.ListCreateAPIView):
         try:
             user = self.request.user
             request.data["user"] = user.id
+            ###############################
+            current_time = datetime.datetime.now()
+            future_time = current_time + datetime.timedelta(minutes=5)
+            future_time1 = future_time.replace(tzinfo=pytz.utc)
+            otp = generateOTP()
+            subject = 'OTP Verification Funku'
+            message = 'Hi,\r\n Please enter the below mentioned OTP for email verified. \r\n '+ str(otp)
+            recepient = self.request.data.get('email', None)
+            user_otp = self.request.data.get('user_otp', None)
+            if recepient is not None and (user_otp is None or user_otp ==''):
+                # mail_response = send_mail(subject, 
+                #     message, settings.EMAIL_HOST_USER, [recepient], fail_silently = False)
+                if True:
+                    chech_data = UserPropertyMailVerified.objects.filter(user_id=user.id,email=recepient).last()
+                    if chech_data is not None:
+                        chech_data.user_id = user.id
+                        chech_data.email = recepient
+                        chech_data.email_otp_valid = future_time1
+                        chech_data.email_otp = otp
+                        chech_data.save()
+                    else:
+                        chech_data = UserPropertyMailVerified()
+                        chech_data.user_id = user.id
+                        chech_data.email = recepient
+                        chech_data.email_otp_valid = future_time1
+                        chech_data.email_otp = otp
+                        chech_data.save()
+
+                    return Response(
+                        {"status": True, "message": "OTP has been sent to your email address. Please check your mail otp="+str(otp)},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        {"status": False, "message": "Please try again."}, status=status.HTTP_200_OK
+                    )
+            if recepient is not None and (otp is not None or otp != ''):
+                   chech_data = UserPropertyMailVerified.objects.filter(user_id=user.id,email=recepient).last()
+            if chech_data is None:
+                return Response(
+                    {"status": False, "message": "Email is incorrect"}, status=status.HTTP_200_OK
+                )
+            current_time = datetime.datetime.now()
+            current_time1 = current_time.replace(tzinfo=pytz.utc)
+            old_date_time = chech_data.email_otp_valid
+            old_date_time1 = old_date_time.replace(tzinfo=pytz.utc)
+            if current_time1 >= old_date_time1:
+                return Response(
+                    {"status": False, "message": "OTP expired."}, status=status.HTTP_200_OK
+                )
+            if user_otp != chech_data.email_otp:
+                return Response(
+                    {"status": False, "message": "OTP is incorrect. please try again"}, status=status.HTTP_200_OK
+                )
+            request.data['is_emailVerify'] = 1
+            #############################
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid(raise_exception=False):
                 serializer.save()
+                # UserPropertyMailVerified.objects.filter(user_id=user.id,email=recepient).delete()
                 return Response(
                     {"status": True, "results": serializer.data},
                     status=status.HTTP_200_OK,
