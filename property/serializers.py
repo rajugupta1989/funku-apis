@@ -88,6 +88,7 @@ class PropertySocialDetailSerializer(serializers.ModelSerializer):
         serializer = super().to_representation(instance)
         exterior = FileRepo.objects.filter(id__in=instance.exterior_gallery.all())
         interior = FileRepo.objects.filter(id__in=instance.interior_gallery.all())
+        video_file = FileRepo.objects.filter(id__in=instance.video_file.all())
         menu = FileRepo.objects.filter(id__in=instance.menu_place.all())
         exterior_gallery = FileRepoSerializer(exterior, many=True).data
         interior_gallery = FileRepoSerializer(interior, many=True).data
@@ -96,6 +97,7 @@ class PropertySocialDetailSerializer(serializers.ModelSerializer):
         serializer.update({
             "exterior_gallery": exterior_gallery,
             "interior_gallery": interior_gallery,
+            "video_file":video_file,
             "menu_place": menu_place,
             "promoter": promoter,
         })
@@ -111,11 +113,13 @@ class FlashDealDetailSerializer(serializers.ModelSerializer):
         serializer = super().to_representation(instance)
         terms_conditions = instance.terms_conditions.all().values("id", "name")
         property_ = UserPropertySerializer(instance=instance.property).data
+        flash_deal_video_file = FileRepo.objects.filter(id__in=instance.flash_deal_video_file.all())
         category = drink_typeSerializer(instance=instance.category).data
         deal_for = FlashDealForSerializer(instance=instance.deal_for).data
         brand = BrandTypeSerializer(instance=instance.brand).data
         serializer.update({
             "property": property_,
+            "flash_deal_video_file":flash_deal_video_file,
             "category": category,
             "deal_for": deal_for,
             "brand": brand,
@@ -133,12 +137,14 @@ class DealSerializer(serializers.ModelSerializer):
         serializer = super().to_representation(instance)
         terms_conditions = instance.terms_conditions.all().values("id", "name")
         property_ = UserPropertySerializer(instance=instance.property).data
+        deal_video_file = FileRepo.objects.filter(id__in=instance.deal_video_file.all())
         deal_type = DealTypeSerializer(instance=instance.deal_type).data
         deal_for = FlashDealForSerializer(instance=instance.deal_for).data
         entry_type = EntryTypeSerializer(instance=instance.entry_type).data
         serializer.update({
             "property": property_,
             "deal_type": deal_type,
+            "deal_video_file":deal_video_file,
             "deal_for": deal_for,
             "entry_type": entry_type,
             "terms_conditions":terms_conditions
@@ -156,6 +162,7 @@ class PartySerializer(serializers.ModelSerializer):
         terms_conditions = instance.terms_conditions.all().values("id", "name")
         image = FileRepo.objects.filter(id__in=instance.image.all())
         image_serializer = FileRepoSerializer(image, many=True).data
+        party_video_file = FileRepo.objects.filter(id__in=instance.party_video_file.all())
         property_ = UserPropertySerializer(instance=instance.property).data
         entry_type = EntryTypeSerializer(instance=instance.entry_type).data
         music_inst = music_type.objects.filter(id__in=instance.music.all())
@@ -164,6 +171,7 @@ class PartySerializer(serializers.ModelSerializer):
             "property": property_,
             "terms_conditions":terms_conditions,
             "image":image_serializer,
+            "party_video_file":party_video_file,
             "entry_type":entry_type,
             "music":music
         })

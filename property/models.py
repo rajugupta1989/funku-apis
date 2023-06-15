@@ -30,6 +30,7 @@ class UserProperty(CommonAbstractModel):
     description = models.CharField(max_length=300, blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
     is_emailVerify = models.IntegerField(default=0)
+    property_code = models.CharField(max_length=100, blank=True, null=True)
     pin_code = models.IntegerField(blank=True, null=True)
     country = models.ForeignKey(
         Country, on_delete=models.CASCADE, blank=True, null=True
@@ -51,7 +52,7 @@ class UserProperty(CommonAbstractModel):
 class UserPropertyMailVerified(CommonAbstractModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     email = models.CharField(max_length=100, blank=True, null=True)
-    # property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
+    property_code = models.CharField(max_length=100, blank=True, null=True)
     email_otp = models.CharField(max_length=11, blank=True, null=True)
     email_otp_valid = models.DateTimeField(null=True, blank=True)
 
@@ -73,6 +74,9 @@ class PropertySocialDetail(CommonAbstractModel):
     property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
     exterior_instagram = models.CharField(max_length=100, blank=True, null=True)
     exterior_facebook = models.CharField(max_length=100, blank=True, null=True)
+    video_file = models.ManyToManyField(
+        FileRepo, blank=True, related_name="video_file"
+    )
     exterior_gallery = models.ManyToManyField(
         FileRepo, blank=True, related_name="exterior_gallery"
     )
@@ -105,6 +109,9 @@ class FlashDealDetail(CommonAbstractModel):
     category = models.ForeignKey(
         drink_type, on_delete=models.CASCADE, blank=True, null=True
     )
+    flash_deal_video_file = models.ManyToManyField(
+        FileRepo, blank=True, related_name="flash_deal_video_file"
+    )
     brand = models.ForeignKey(
         BrandType, on_delete=models.CASCADE, blank=True, null=True
     )
@@ -135,6 +142,9 @@ class Deal(CommonAbstractModel):
     discount = models.CharField(max_length=100,blank=True, null=True)
     cover_charge = models.CharField(max_length=100,blank=True, null=True)
     no_of_people = models.CharField(max_length=100,blank=True, null=True)
+    deal_video_file = models.ManyToManyField(
+        FileRepo, blank=True, related_name="deal_video_file"
+    )
 
 
 
@@ -159,7 +169,9 @@ class Party(CommonAbstractModel):
     )
     discount = models.CharField(max_length=100,blank=True, null=True)
     music = models.ManyToManyField(music_type,blank=True)
-
+    party_video_file = models.ManyToManyField(
+        FileRepo, blank=True, related_name="party_video_file"
+    )
 
 
 class UserEnquiry(CommonAbstractModel):

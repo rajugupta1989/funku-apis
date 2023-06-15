@@ -40,8 +40,7 @@ urlpatterns = [
     path(r'user_booking/', views.UserBookingAPIView.as_view(), name='user_booking'),
     path(r'owner_booking/', views.OwnerBookingAPIView.as_view(), name='owner_booking'),
 
-    path(r'send_otp_mail_property/', views.SendOtpOnMailPropertyAPIView.as_view(), name='send_otp_mail_property'),
-    path(r'verify_mail_otp_property/', views.MailOtpVerifiedPropertyAPIView.as_view(), name='verify_mail_otp_property'),
+    path(r'send_otp_mail_verified_property/', views.SendOtpOnMailVerifiedPropertyAPIView.as_view(), name='send_otp_mail_verified_property'),
     path('search/', views.SearchAPIView.as_view(), name='search'),
 ]
 

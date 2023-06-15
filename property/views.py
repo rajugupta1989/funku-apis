@@ -132,72 +132,15 @@ class AddPropertyAPIView(generics.ListCreateAPIView):
             user = self.request.user
             request.data["user"] = user.id
             ###############################
-            current_time = datetime.datetime.now()
-            future_time = current_time + datetime.timedelta(minutes=5)
-            future_time1 = future_time.replace(tzinfo=pytz.utc)
-            otp = generateOTP()
-            subject = "OTP Verification Funku"
-            message = (
-                "Hi,\r\n Please enter the below mentioned OTP for email verified. \r\n "
-                + str(otp)
-            )
             recepient = self.request.data.get("email", None)
-            user_otp = self.request.data.get("user_otp", None)
-            if recepient is not None and (user_otp is None or user_otp == ""):
-                # mail_response = send_mail(subject,
-                #     message, settings.EMAIL_HOST_USER, [recepient], fail_silently = False)
-                if True:
-                    chech_data = UserPropertyMailVerified.objects.filter(
-                        user_id=user.id, email=recepient
-                    ).last()
-                    if chech_data is not None:
-                        chech_data.user_id = user.id
-                        chech_data.email = recepient
-                        chech_data.email_otp_valid = future_time1
-                        chech_data.email_otp = otp
-                        chech_data.save()
-                    else:
-                        chech_data = UserPropertyMailVerified()
-                        chech_data.user_id = user.id
-                        chech_data.email = recepient
-                        chech_data.email_otp_valid = future_time1
-                        chech_data.email_otp = otp
-                        chech_data.save()
-
-                    return Response(
-                        {
-                            "status": True,
-                            "message": "OTP has been sent to your email address. Please check your mail otp="
-                            + str(otp),
-                        },
-                        status=status.HTTP_200_OK,
-                    )
-                else:
-                    return Response(
-                        {"status": False, "message": "Please try again."},
-                        status=status.HTTP_200_OK,
-                    )
-            if recepient is not None and (otp is not None or otp != ""):
+            property_code = self.request.data.get("property_code", None)
+            if recepient is not None and (property_code is not None or property_code != ""):
                 chech_data = UserPropertyMailVerified.objects.filter(
-                    user_id=user.id, email=recepient
+                    user_id=user.id, email=recepient,property_code=property_code
                 ).last()
             if chech_data is None:
                 return Response(
-                    {"status": False, "message": "Email is incorrect"},
-                    status=status.HTTP_200_OK,
-                )
-            current_time = datetime.datetime.now()
-            current_time1 = current_time.replace(tzinfo=pytz.utc)
-            old_date_time = chech_data.email_otp_valid
-            old_date_time1 = old_date_time.replace(tzinfo=pytz.utc)
-            if current_time1 >= old_date_time1:
-                return Response(
-                    {"status": False, "message": "OTP expired."},
-                    status=status.HTTP_200_OK,
-                )
-            if user_otp != chech_data.email_otp:
-                return Response(
-                    {"status": False, "message": "OTP is incorrect. please try again"},
+                    {"status": False, "message": "Email or property code is incorrect, please verify the email and generate a new property code"},
                     status=status.HTTP_200_OK,
                 )
             request.data["is_emailVerify"] = 1
@@ -205,7 +148,7 @@ class AddPropertyAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid(raise_exception=False):
                 serializer.save()
-                # UserPropertyMailVerified.objects.filter(user_id=user.id,email=recepient).delete()
+                UserPropertyMailVerified.objects.filter(user_id=user.id,email=recepient,property_code=property_code).delete()
                 return Response(
                     {"status": True, "results": serializer.data},
                     status=status.HTTP_200_OK,
@@ -259,6 +202,19 @@ class AddPropertyWebAPIView(generics.ListCreateAPIView):
             with transaction.atomic():
                 user = self.request.user
                 request.data["user"] = user.id
+                ###############################
+                recepient = self.request.data.get("email", None)
+                property_code = self.request.data.get("property_code", None)
+                if recepient is not None and (property_code is not None or property_code != ""):
+                    chech_data = UserPropertyMailVerified.objects.filter(
+                        user_id=user.id, email=recepient,property_code=property_code
+                    ).last()
+                if chech_data is None:
+                    return Response(
+                        {"status": False, "message": "Email or property code is incorrect, please verify the email and generate a new property code"},
+                        status=status.HTTP_200_OK,
+                    )
+                request.data["is_emailVerify"] = 1
                 serializer = self.serializer_class(data=request.data)
                 if serializer.is_valid(raise_exception=False):
                     serializer.save()
@@ -286,6 +242,7 @@ class AddPropertyWebAPIView(generics.ListCreateAPIView):
                     serializer_social = self.serializer_class_social(data=request.data)
                     if serializer_social.is_valid(raise_exception=False):
                         serializer_social.save()
+                        UserPropertyMailVerified.objects.filter(user_id=user.id,email=recepient,property_code=property_code).delete()
                     else:
                         transaction.set_rollback(True)
                         return Response(
@@ -1616,7 +1573,7 @@ def generateOTP():
     return OTP
 
 
-class SendOtpOnMailPropertyAPIView(generics.CreateAPIView):
+class SendOtpOnMailVerifiedPropertyAPIView(generics.CreateAPIView):
     """
     send otp on the mail property
     """
@@ -1629,20 +1586,9 @@ class SendOtpOnMailPropertyAPIView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         try:
             user = self.request.user
-            email = self.request.data.get("email", None)
-            property = self.request.data.get("property", None)
-            email_check = UserProperty.objects.filter(
-                user_id=user.id, id=property, email=email, is_emailVerify=1
-            ).last()
-            if email_check is not None:
-                return Response(
-                    {
-                        "status": False,
-                        "message": "Email already exist with emailVerified",
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            user_data = self.queryset.filter(user_id=user.id, id=property).last()
+            recepient = self.request.data.get("email", None)
+            user_otp = self.request.data.get("user_otp", None)
+            ###############################
             current_time = datetime.datetime.now()
             future_time = current_time + datetime.timedelta(minutes=5)
             future_time1 = future_time.replace(tzinfo=pytz.utc)
@@ -1652,101 +1598,40 @@ class SendOtpOnMailPropertyAPIView(generics.CreateAPIView):
                 "Hi,\r\n Please enter the below mentioned OTP for email verified. \r\n "
                 + str(otp)
             )
-            recepient = email
-            mail_response = send_mail(
-                subject,
-                message,
-                settings.EMAIL_HOST_USER,
-                [recepient],
-                fail_silently=False,
-            )
-            if mail_response:
-                user_data.email = email
-                user_data.save()
+            if recepient is not None and (user_otp is None or user_otp == ""):
+                # mail_response = send_mail(subject,
+                #     message, settings.EMAIL_HOST_USER, [recepient], fail_silently = False)
+                if True:
+                    chech_data = UserPropertyMailVerified.objects.filter(
+                        user_id=user.id, email=recepient
+                    ).last()
+                    if chech_data is not None:
+                        chech_data.email_otp_valid = future_time1
+                        chech_data.email_otp = otp
+                        chech_data.save()
+                    else:
+                        chech_data = UserPropertyMailVerified()
+                        chech_data.user_id = user.id
+                        chech_data.email = recepient
+                        chech_data.email_otp_valid = future_time1
+                        chech_data.email_otp = otp
+                        chech_data.save()
+
+                    return Response(
+                        {
+                            "status": True,
+                            "message": "OTP has been sent to your email address. Please check your mail otp="
+                            + str(otp),
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+            if recepient is not None and (otp is not None or otp != ""):
                 chech_data = UserPropertyMailVerified.objects.filter(
-                    user_id=user.id, property_id=property
+                    user_id=user.id, email=recepient
                 ).last()
-                if chech_data is not None:
-                    chech_data.user_id = user.id
-                    chech_data.property_id = property
-                    chech_data.email_otp_valid = future_time1
-                    chech_data.email_otp = otp
-                    chech_data.save()
-                else:
-                    chech_data = UserPropertyMailVerified()
-                    chech_data.user_id = user.id
-                    chech_data.property_id = property
-                    chech_data.email_otp_valid = future_time1
-                    chech_data.email_otp = otp
-                    chech_data.save()
-
-                return Response(
-                    {
-                        "status": True,
-                        "message": "OTP has been sent to your email address. Please check your mail",
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            else:
-                return Response(
-                    {"status": False, "message": "Please try again."},
-                    status=status.HTTP_200_OK,
-                )
-
-        except Exception as e:
-            print(str(e))
-            error = {
-                "status": False,
-                "message": "Something Went Wrong",
-                "error": str(e),
-            }
-            return Response(error, status=status.HTTP_200_OK)
-
-
-class MailOtpVerifiedPropertyAPIView(generics.CreateAPIView):
-    """
-    otp verified the mail property
-    """
-
-    permission_classes = (IsAuthenticated,)
-    authentication_class = JSONWebTokenAuthentication
-    queryset = UserProperty.objects.all()
-    serializer_class = UserPropertySerializer
-
-    def post(self, request, *args, **kwargs):
-        try:
-            user = self.request.user
-            email = self.request.data.get("email", None)
-            otp = self.request.data.get("otp", None)
-            property = self.request.data.get("property", None)
-            email_check = UserProperty.objects.filter(
-                user_id=user.id, id=property, email=email, is_emailVerify=1
-            ).last()
-            if email_check is not None:
-                return Response(
-                    {
-                        "status": False,
-                        "message": "Email already exist with emailVerified",
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            user_data = self.queryset.filter(
-                user_id=user.id, id=property, email=email
-            ).last()
-            if user_data is None:
-                return Response(
-                    {"status": False, "message": "Email is incorrect"},
-                    status=status.HTTP_200_OK,
-                )
-            chech_data = UserPropertyMailVerified.objects.filter(
-                user_id=user.id, property_id=property
-            ).last()
             if chech_data is None:
                 return Response(
-                    {
-                        "status": False,
-                        "message": "Please send otp on the mail before verify",
-                    },
+                    {"status": False, "message": "Email is incorrect"},
                     status=status.HTTP_200_OK,
                 )
             current_time = datetime.datetime.now()
@@ -1758,17 +1643,21 @@ class MailOtpVerifiedPropertyAPIView(generics.CreateAPIView):
                     {"status": False, "message": "OTP expired."},
                     status=status.HTTP_200_OK,
                 )
-            if otp != chech_data.email_otp:
+            if user_otp != chech_data.email_otp:
                 return Response(
                     {"status": False, "message": "OTP is incorrect. please try again"},
                     status=status.HTTP_200_OK,
                 )
-            user_data.is_emailVerify = 1
-            user_data.save()
+            chech_data.property_code = "PRO"+str(uuid.uuid4().hex)[:8]
+            chech_data.save()
             return Response(
-                {"status": True, "message": "Email verified"},
-                status=status.HTTP_200_OK,
-            )
+                        {
+                            "status": True,
+                            "message": "Property code has been sent to your email address. Please check your mail property_code="
+                            + str(chech_data.property_code),
+                        },
+                        status=status.HTTP_200_OK,
+                    )
         except Exception as e:
             print(str(e))
             error = {
@@ -1777,6 +1666,7 @@ class MailOtpVerifiedPropertyAPIView(generics.CreateAPIView):
                 "error": str(e),
             }
             return Response(error, status=status.HTTP_200_OK)
+
 
 
 class SearchAPIView(generics.ListAPIView):
