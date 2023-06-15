@@ -228,6 +228,7 @@ class UserBooking(CommonAbstractModel):
     flash_deal = models.ForeignKey(FlashDealDetail, on_delete=models.CASCADE,blank=True, null=True)
     remark = models.CharField(max_length=100,blank=True, null=True)
     booking_code = models.CharField(max_length=100,blank=True, null=True)
+    quantity = models.CharField(max_length=100,blank=True, null=True)
     booking_status = models.BooleanField(default=False)
     booking_status_from_owner = models.BooleanField(default=False)
     date = models.DateTimeField(null=True, blank=True)
