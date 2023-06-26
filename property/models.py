@@ -99,25 +99,23 @@ class FlashDealDetail(CommonAbstractModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
     deal_name = models.CharField(max_length=100,blank=True, null=True)
-    deal_for = models.ForeignKey(
-        FlashDealFor, on_delete=models.CASCADE, blank=True, null=True
-    )
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     duration = models.CharField(max_length=100, null=True, blank=True)
     terms_conditions = models.ManyToManyField(DealTermsAndConditions, blank=True)
-    category = models.ForeignKey(
-        drink_type, on_delete=models.CASCADE, blank=True, null=True
-    )
     flash_deal_video_file = models.ManyToManyField(
         FileRepo, blank=True, related_name="flash_deal_video_file"
-    )
-    brand = models.ForeignKey(
-        BrandType, on_delete=models.CASCADE, blank=True, null=True
     )
     entry_price = models.CharField(max_length=100,blank=True, null=True)
     discount = models.CharField(max_length=100,blank=True, null=True)
     cover_charge = models.CharField(max_length=100,blank=True, null=True)
+    deal_type = models.ManyToManyField(DealType, blank=True)
+    deal_for = models.ManyToManyField(FlashDealFor, blank=True)
+    music_type = models.ManyToManyField(music_type, blank=True)
+    entry_type = models.ManyToManyField(EntryType, blank=True)
+    drink_type = models.ManyToManyField(drink_type, blank=True)
+    brand_type = models.ManyToManyField(BrandType, blank=True)
+
 
 
 class Deal(CommonAbstractModel):
@@ -125,18 +123,10 @@ class Deal(CommonAbstractModel):
     property = models.ForeignKey(UserProperty, on_delete=models.CASCADE)
     deal_name = models.CharField(max_length=100,blank=True, null=True)
     deal_code = models.CharField(max_length=100,blank=True, null=True)
-    deal_type = models.ForeignKey(
-        DealType, on_delete=models.CASCADE, blank=True, null=True
-    )
-    deal_for = models.ForeignKey(
-        FlashDealFor, on_delete=models.CASCADE, blank=True, null=True
-    )
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     terms_conditions = models.ManyToManyField(DealTermsAndConditions, blank=True)
-    entry_type = models.ForeignKey(
-        EntryType, on_delete=models.CASCADE, blank=True, null=True
-    )
+    
     recurring = models.BooleanField(default=False)
     entry_price = models.CharField(max_length=100,blank=True, null=True)
     discount = models.CharField(max_length=100,blank=True, null=True)
@@ -145,6 +135,15 @@ class Deal(CommonAbstractModel):
     deal_video_file = models.ManyToManyField(
         FileRepo, blank=True, related_name="deal_video_file"
     )
+    deal_type = models.ManyToManyField(DealType, blank=True)
+    deal_for = models.ManyToManyField(FlashDealFor, blank=True)
+    music_type = models.ManyToManyField(music_type, blank=True)
+    entry_type = models.ManyToManyField(EntryType, blank=True)
+    drink_type = models.ManyToManyField(drink_type, blank=True)
+    brand_type = models.ManyToManyField(BrandType, blank=True)
+
+    
+
 
 
 
@@ -164,14 +163,20 @@ class Party(CommonAbstractModel):
     image = models.ManyToManyField(
         FileRepo, blank=True, related_name="image"
     )
-    entry_type = models.ForeignKey(
-        EntryType, on_delete=models.CASCADE, blank=True, null=True
-    )
     discount = models.CharField(max_length=100,blank=True, null=True)
-    music = models.ManyToManyField(music_type,blank=True)
     party_video_file = models.ManyToManyField(
         FileRepo, blank=True, related_name="party_video_file"
     )
+    deal_type = models.ManyToManyField(DealType, blank=True)
+    deal_for = models.ManyToManyField(FlashDealFor, blank=True)
+    music_type = models.ManyToManyField(music_type, blank=True)
+    entry_type = models.ManyToManyField(EntryType, blank=True)
+    drink_type = models.ManyToManyField(drink_type, blank=True)
+    brand_type = models.ManyToManyField(BrandType, blank=True)
+
+    
+
+
 
 
 class UserEnquiry(CommonAbstractModel):

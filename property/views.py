@@ -1678,21 +1678,33 @@ class SearchAPIView(generics.ListAPIView):
         try:
             result_data = {}
             query = self.request.GET.get("query", None)
+            lat = request.query_params.get("lat", None)
+            long = request.query_params.get("long", None)
+            distance = request.query_params.get("distance", None)
+
+            current_datetime = datetime.datetime.now()
+            data = get_lat_long_calculated(lat, long, distance)
+
+            property_id = (
+                    UserProperty.objects.filter(lat__gte=data.lat1, lat__lte=data.lat2)
+                    .filter(long__gte=data.long2, long__lte=data.long1)
+                    .values_list("id", flat=True)
+                )
             flash_deal = FlashDealDetail.objects.annotate(
                 search=SearchVector(
-                    "deal_name", "deal_for__name", "category__name", "brand__name"
+                    "deal_name","deal_type__name", "deal_for__name","music_type__name", "entry_type__name", "drink_type__name","brand_type__name"
                 ),
             ).filter(search=query)
-
+            print('flash_deal',flash_deal)
             result_data["flash_deal"] = FlashDealDetailSerializer(
                 flash_deal, many=True
             ).data
             ###################
             deal = Deal.objects.annotate(
                 search=SearchVector(
-                    "deal_name", "deal_type__name","deal_for__name", "entry_type__name"
+                    "deal_name","deal_type__name", "deal_for__name","music_type__name", "entry_type__name", "drink_type__name","brand_type__name"
                 ),
-            ).filter(search=query)
+            ).filter(search=query,property__in=property_id,start_date__lte=current_datetime,end_date__gte=current_datetime)
 
             result_data["deal"] = DealSerializer(
                 deal, many=True
@@ -1700,9 +1712,9 @@ class SearchAPIView(generics.ListAPIView):
             ######################
             party = Party.objects.annotate(
                 search=SearchVector(
-                    "party_name", "entry_type__name", "music__name"
+                    "party_name","deal_type__name", "deal_for__name","music_type__name", "entry_type__name", "drink_type__name","brand_type__name"
                 ),
-            ).filter(search=query)
+            ).filter(search=query,property__in=property_id,start_date__lte=current_datetime,end_date__gte=current_datetime)
 
             result_data["party"] = PartySerializer(
                 party, many=True

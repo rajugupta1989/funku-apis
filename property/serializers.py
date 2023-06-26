@@ -116,15 +116,22 @@ class FlashDealDetailSerializer(serializers.ModelSerializer):
         property_ = UserPropertySerializer(instance=instance.property).data
         video = FileRepo.objects.filter(id__in=instance.flash_deal_video_file.all())
         flash_deal_video_file = FileRepoSerializer(video, many=True).data
-        category = drink_typeSerializer(instance=instance.category).data
-        deal_for = FlashDealForSerializer(instance=instance.deal_for).data
-        brand = BrandTypeSerializer(instance=instance.brand).data
+        deal_type = DealTypeSerializer(instance=instance.deal_type.all(),many=True).data
+        deal_for = FlashDealForSerializer(instance=instance.deal_for.all(),many=True).data
+        music_type = music_typeSerializer(instance=instance.music_type.all(),many=True).data
+        entry_type = EntryTypeSerializer(instance=instance.entry_type.all(),many=True).data
+        drink_type = drink_typeSerializer(instance=instance.drink_type.all(),many=True).data
+        brand_type = BrandTypeSerializer(instance=instance.brand_type.all(),many=True).data
+
         serializer.update({
             "property": property_,
             "flash_deal_video_file":flash_deal_video_file,
-            "category": category,
+            "drink_type": drink_type,
             "deal_for": deal_for,
-            "brand": brand,
+            "deal_type":deal_type,
+            "music_type":music_type,
+            "brand_type": brand_type,
+            "entry_type":entry_type,
             "terms_conditions":terms_conditions
         })
         return serializer
@@ -141,15 +148,21 @@ class DealSerializer(serializers.ModelSerializer):
         property_ = UserPropertySerializer(instance=instance.property).data
         video = FileRepo.objects.filter(id__in=instance.deal_video_file.all())
         deal_video_file = FileRepoSerializer(video, many=True).data
-        deal_type = DealTypeSerializer(instance=instance.deal_type).data
-        deal_for = FlashDealForSerializer(instance=instance.deal_for).data
-        entry_type = EntryTypeSerializer(instance=instance.entry_type).data
+        deal_type = DealTypeSerializer(instance=instance.deal_type.all(),many=True).data
+        deal_for = FlashDealForSerializer(instance=instance.deal_for.all(),many=True).data
+        music_type = music_typeSerializer(instance=instance.music_type.all(),many=True).data
+        entry_type = EntryTypeSerializer(instance=instance.entry_type.all(),many=True).data
+        drink_type = drink_typeSerializer(instance=instance.drink_type.all(),many=True).data
+        brand_type = BrandTypeSerializer(instance=instance.brand_type.all(),many=True).data
         serializer.update({
             "property": property_,
             "deal_type": deal_type,
             "deal_video_file":deal_video_file,
             "deal_for": deal_for,
             "entry_type": entry_type,
+            "music_type":music_type,
+            "drink_type":drink_type,
+            "brand_type":brand_type,
             "terms_conditions":terms_conditions
         })
         return serializer
@@ -168,16 +181,24 @@ class PartySerializer(serializers.ModelSerializer):
         video = FileRepo.objects.filter(id__in=instance.party_video_file.all())
         party_video_file = FileRepoSerializer(video, many=True).data
         property_ = UserPropertySerializer(instance=instance.property).data
-        entry_type = EntryTypeSerializer(instance=instance.entry_type).data
-        music_inst = music_type.objects.filter(id__in=instance.music.all())
-        music = music_typeSerializer(music_inst,many=True).data
+        deal_type = DealTypeSerializer(instance=instance.deal_type.all(),many=True).data
+        deal_for = FlashDealForSerializer(instance=instance.deal_for.all(),many=True).data
+        music_type = music_typeSerializer(instance=instance.music_type.all(),many=True).data
+        entry_type = EntryTypeSerializer(instance=instance.entry_type.all(),many=True).data
+        drink_type = drink_typeSerializer(instance=instance.drink_type.all(),many=True).data
+        brand_type = BrandTypeSerializer(instance=instance.brand_type.all(),many=True).data
+
         serializer.update({
             "property": property_,
             "terms_conditions":terms_conditions,
             "image":image_serializer,
             "party_video_file":party_video_file,
             "entry_type":entry_type,
-            "music":music
+            "music_type":music_type,
+            "drink_type":drink_type,
+            "brand_type":brand_type,
+            "deal_for":deal_for,
+            "deal_type":deal_type
         })
         return serializer
 
