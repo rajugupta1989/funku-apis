@@ -16,6 +16,7 @@ from django.contrib.auth import login
 from django.db import transaction, IntegrityError
 from property.lat_long_calculator import generate_qr_code, get_lat_long_calculated
 import json
+from django.db.models import Q
 import datetime
 import base64
 import uuid
@@ -134,13 +135,18 @@ class AddPropertyAPIView(generics.ListCreateAPIView):
             ###############################
             recepient = self.request.data.get("email", None)
             property_code = self.request.data.get("property_code", None)
-            if recepient is not None and (property_code is not None or property_code != ""):
+            if recepient is not None and (
+                property_code is not None or property_code != ""
+            ):
                 chech_data = UserPropertyMailVerified.objects.filter(
-                    user_id=user.id, email=recepient,property_code=property_code
+                    user_id=user.id, email=recepient, property_code=property_code
                 ).last()
             if chech_data is None:
                 return Response(
-                    {"status": False, "message": "Email or property code is incorrect, please verify the email and generate a new property code"},
+                    {
+                        "status": False,
+                        "message": "Email or property code is incorrect, please verify the email and generate a new property code",
+                    },
                     status=status.HTTP_200_OK,
                 )
             request.data["is_emailVerify"] = 1
@@ -148,7 +154,9 @@ class AddPropertyAPIView(generics.ListCreateAPIView):
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid(raise_exception=False):
                 serializer.save()
-                UserPropertyMailVerified.objects.filter(user_id=user.id,email=recepient,property_code=property_code).delete()
+                UserPropertyMailVerified.objects.filter(
+                    user_id=user.id, email=recepient, property_code=property_code
+                ).delete()
                 return Response(
                     {"status": True, "results": serializer.data},
                     status=status.HTTP_200_OK,
@@ -205,13 +213,18 @@ class AddPropertyWebAPIView(generics.ListCreateAPIView):
                 ###############################
                 recepient = self.request.data.get("email", None)
                 property_code = self.request.data.get("property_code", None)
-                if recepient is not None and (property_code is not None or property_code != ""):
+                if recepient is not None and (
+                    property_code is not None or property_code != ""
+                ):
                     chech_data = UserPropertyMailVerified.objects.filter(
-                        user_id=user.id, email=recepient,property_code=property_code
+                        user_id=user.id, email=recepient, property_code=property_code
                     ).last()
                 if chech_data is None:
                     return Response(
-                        {"status": False, "message": "Email or property code is incorrect, please verify the email and generate a new property code"},
+                        {
+                            "status": False,
+                            "message": "Email or property code is incorrect, please verify the email and generate a new property code",
+                        },
                         status=status.HTTP_200_OK,
                     )
                 request.data["is_emailVerify"] = 1
@@ -242,7 +255,11 @@ class AddPropertyWebAPIView(generics.ListCreateAPIView):
                     serializer_social = self.serializer_class_social(data=request.data)
                     if serializer_social.is_valid(raise_exception=False):
                         serializer_social.save()
-                        UserPropertyMailVerified.objects.filter(user_id=user.id,email=recepient,property_code=property_code).delete()
+                        UserPropertyMailVerified.objects.filter(
+                            user_id=user.id,
+                            email=recepient,
+                            property_code=property_code,
+                        ).delete()
                     else:
                         transaction.set_rollback(True)
                         return Response(
@@ -1648,16 +1665,16 @@ class SendOtpOnMailVerifiedPropertyAPIView(generics.CreateAPIView):
                     {"status": False, "message": "OTP is incorrect. please try again"},
                     status=status.HTTP_200_OK,
                 )
-            chech_data.property_code = "PRO"+str(uuid.uuid4().hex)[:8]
+            chech_data.property_code = "PRO" + str(uuid.uuid4().hex)[:8]
             chech_data.save()
             return Response(
-                        {
-                            "status": True,
-                            "message": "Property code has been sent to your email address. Please check your mail property_code="
-                            + str(chech_data.property_code),
-                        },
-                        status=status.HTTP_200_OK,
-                    )
+                {
+                    "status": True,
+                    "message": "Property code has been sent to your email address. Please check your mail property_code="
+                    + str(chech_data.property_code),
+                },
+                status=status.HTTP_200_OK,
+            )
         except Exception as e:
             print(str(e))
             error = {
@@ -1666,7 +1683,6 @@ class SendOtpOnMailVerifiedPropertyAPIView(generics.CreateAPIView):
                 "error": str(e),
             }
             return Response(error, status=status.HTTP_200_OK)
-
 
 
 class SearchAPIView(generics.ListAPIView):
@@ -1678,35 +1694,160 @@ class SearchAPIView(generics.ListAPIView):
         try:
             result_data = {}
             query = self.request.GET.get("query", None)
-            flash_deal = FlashDealDetail.objects.annotate(
-                search=SearchVector(
-                    "deal_name", "deal_for__name", "category__name", "brand__name"
-                ),
-            ).filter(search=query)
+            lat = request.query_params.get("lat", None)
+            long = request.query_params.get("long", None)
+            distance = request.query_params.get("distance", None)
 
+            current_datetime = datetime.datetime.now()
+            data = get_lat_long_calculated(lat, long, distance)
+            print('current_datetime',current_datetime)
+            property_id = (
+                UserProperty.objects.filter(lat__gte=data.lat1, lat__lte=data.lat2)
+                .filter(long__gte=data.long2, long__lte=data.long1)
+                .values_list("id", flat=True)
+            )
+            flash_deal = FlashDealDetail.objects.filter(
+                Q(
+                    property_id__in=property_id,
+                    start_date__lte=current_datetime,
+                    end_date__gte=current_datetime,
+                ),
+                Q(deal_name__icontains=query)
+                | Q(deal_type__name__icontains=query)
+                | Q(deal_for__name__icontains=query)
+                | Q(music_type__name__icontains=query)
+                | Q(entry_type__name__icontains=query)
+                | Q(drink_type__name__icontains=query)
+                | Q(brand_type__name__icontains=query),
+            ).distinct("id")
             result_data["flash_deal"] = FlashDealDetailSerializer(
                 flash_deal, many=True
             ).data
             ###################
-            deal = Deal.objects.annotate(
-                search=SearchVector(
-                    "deal_name", "deal_type__name","deal_for__name", "entry_type__name"
+            deal = Deal.objects.filter(
+                Q(
+                    property_id__in=property_id,
+                    start_date__lte=current_datetime,
+                    end_date__gte=current_datetime,
                 ),
-            ).filter(search=query)
-
-            result_data["deal"] = DealSerializer(
-                deal, many=True
-            ).data
+                Q(deal_name__icontains=query)
+                | Q(deal_type__name__icontains=query)
+                | Q(deal_for__name__icontains=query)
+                | Q(music_type__name__icontains=query)
+                | Q(entry_type__name__icontains=query)
+                | Q(drink_type__name__icontains=query)
+                | Q(brand_type__name__icontains=query),
+            ).distinct("id")
+            result_data["deal"] = DealSerializer(deal, many=True).data
             ######################
-            party = Party.objects.annotate(
-                search=SearchVector(
-                    "party_name", "entry_type__name", "music__name"
+            party = Party.objects.filter(
+                Q(
+                    property_id__in=property_id,
+                    start_date__lte=current_datetime,
+                    end_date__gte=current_datetime,
                 ),
-            ).filter(search=query)
+                Q(party_name__icontains=query)
+                | Q(deal_type__name__icontains=query)
+                | Q(deal_for__name__icontains=query)
+                | Q(music_type__name__icontains=query)
+                | Q(entry_type__name__icontains=query)
+                | Q(drink_type__name__icontains=query)
+                | Q(brand_type__name__icontains=query),
+            ).distinct("id")
+            result_data["party"] = PartySerializer(party, many=True).data
 
-            result_data["party"] = PartySerializer(
-                party, many=True
+            response = {"status": True, "results": result_data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+
+class FilterAPIView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = FlashDealDetail
+    serializer_class = FlashDealDetailSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            result_data = {}
+            deal_type = self.request.GET.get("deal_type", None)
+            deal_for = self.request.GET.get("deal_for", None)
+            music_type = self.request.GET.get("music_type", None)
+            entry_type = self.request.GET.get("entry_type", None)
+            drink_type = self.request.GET.get("drink_type", None)
+            brand_type = self.request.GET.get("brand_type", None)
+
+            deal_type = eval(deal_type) if deal_type is not None else []
+            deal_for = eval(deal_for) if deal_for is not None else []
+            music_type = eval(music_type) if music_type is not None else []
+            entry_type = eval(entry_type) if entry_type is not None else []
+            drink_type = eval(drink_type) if drink_type is not None else []
+            brand_type = eval(brand_type) if brand_type is not None else []
+
+            lat = request.query_params.get("lat", None)
+            long = request.query_params.get("long", None)
+            distance = request.query_params.get("distance", None)
+
+            current_datetime = datetime.datetime.now()
+            data = get_lat_long_calculated(lat, long, distance)
+            print('current_datetime',current_datetime)
+            property_id = (
+                UserProperty.objects.filter(lat__gte=data.lat1, lat__lte=data.lat2)
+                .filter(long__gte=data.long2, long__lte=data.long1)
+                .values_list("id", flat=True)
+            )
+            flash_deal = FlashDealDetail.objects.filter(
+                Q(
+                    property_id__in=property_id,
+                    start_date__lte=current_datetime,
+                    end_date__gte=current_datetime,
+                ),
+                Q(deal_type__id__in=deal_type)
+                | Q(deal_for__id__in=deal_for)
+                | Q(music_type__id__in=music_type)
+                | Q(entry_type__id__in=entry_type)
+                | Q(drink_type__id__in=drink_type)
+                | Q(brand_type__id__in=brand_type),
+            ).distinct("id")
+            result_data["flash_deal"] = FlashDealDetailSerializer(
+                flash_deal, many=True
             ).data
+            ###################
+            deal = Deal.objects.filter(
+                Q(
+                    property_id__in=property_id,
+                    start_date__lte=current_datetime,
+                    end_date__gte=current_datetime,
+                ),
+                Q(deal_type__id__in=deal_type)
+                | Q(deal_for__id__in=deal_for)
+                | Q(music_type__id__in=music_type)
+                | Q(entry_type__id__in=entry_type)
+                | Q(drink_type__id__in=drink_type)
+                | Q(brand_type__id__in=brand_type),
+            ).distinct("id")
+            result_data["deal"] = DealSerializer(deal, many=True).data
+            ######################
+            party = Party.objects.filter(
+                Q(
+                    property_id__in=property_id,
+                    start_date__lte=current_datetime,
+                    end_date__gte=current_datetime,
+                ),
+                Q(deal_type__id__in=deal_type)
+                | Q(deal_for__id__in=deal_for)
+                | Q(music_type__id__in=music_type)
+                | Q(entry_type__id__in=entry_type)
+                | Q(drink_type__id__in=drink_type)
+                | Q(brand_type__id__in=brand_type),
+            ).distinct("id")
+            result_data["party"] = PartySerializer(party, many=True).data
 
             response = {"status": True, "results": result_data}
             return Response(response, status=status.HTTP_200_OK)

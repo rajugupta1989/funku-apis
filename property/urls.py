@@ -42,6 +42,7 @@ urlpatterns = [
 
     path(r'send_otp_mail_verified_property/', views.SendOtpOnMailVerifiedPropertyAPIView.as_view(), name='send_otp_mail_verified_property'),
     path('search/', views.SearchAPIView.as_view(), name='search'),
+     path('filter/', views.FilterAPIView.as_view(), name='filter'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL,
