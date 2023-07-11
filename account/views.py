@@ -787,6 +787,26 @@ class FileRepoAPIView(generics.RetrieveUpdateDestroyAPIView):
             error = {'status': False, 'message': "Something Went Wrong"}
             return Response(error, status=status.HTTP_200_OK)
 
+class UserListByIdAPIView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = self.request.query_params.get("user_id", None)
+            user = self.queryset.filter(id__in=list(eval(user_id)),is_superuser=False,is_active=True)
+            serializer = self.serializer_class(instance=user,many=True)
+            response = {
+                    'status': True,'results': serializer.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(str(e))
+            error = {'status': False,
+                     'message': "Something Went Wrong", "error": str(e)}
+            return Response(error, status=status.HTTP_200_OK)
+
 
 class UserSearchAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)

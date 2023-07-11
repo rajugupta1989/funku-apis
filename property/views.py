@@ -345,8 +345,11 @@ class AddPropertyWebAPIView(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            user = self.request.user
-            profile = self.queryset.filter(user=user.id)
+            if "Super Admin" in list(self.request.user.role.all().values_list('name',flat=True)):
+                profile = self.queryset.all()
+            else:
+                user = self.request.user
+                profile = self.queryset.filter(user=user.id)
             response = self.serializer_class(profile, many=True)
             response = {"status": True, "results": response.data}
             return Response(response, status=status.HTTP_200_OK)

@@ -20,6 +20,7 @@ urlpatterns = [
     path(r'file_repo/', views.FilesRepoAPIView.as_view(), name='file-repo-list'),
     path(r'file_repo/<int:pk>/', views.FileRepoAPIView.as_view(), name='file-rep_-detail'),
     path(r'user_search/', views.UserSearchAPIView.as_view(), name='user_search'),
+    path(r'user_list_by_id/', views.UserListByIdAPIView.as_view(), name='user_list_by_id'),
     # path(r'resent/', views.Resent.as_view(), name='reset'),
     # path(r'login/', views.Login.as_view(), name='login'),
     # path(r'exist/<str:device>', views.UserExists.as_view(), name='exist'),
