@@ -41,10 +41,13 @@ class UserPropertySerializer(serializers.ModelSerializer):
         social = PropertySocialDetail.objects.filter(property=instance).last()
         social_data = PropertySocialDetailSerializer(instance=social).data
         manager = UserProfileUpdateSerializer(instance=instance.manager,many=True).data
+        documents_verified_by = UserProfileUpdateSerializer(instance=instance.documents_verified_by).data
         country = CountrySerializer(instance=instance.country).data
         state = StateSerializer(instance=instance.state).data
         city = CitySerializer(instance=instance.city).data
         property_type = PropertyTypeSerializer(instance=instance.property_type).data
+        documents_file = FileRepo.objects.filter(id__in=instance.documents.all())
+        documents = FileRepoSerializer(documents_file, many=True).data
         serializer.update(
             {
                 "payment": payment,
@@ -54,7 +57,9 @@ class UserPropertySerializer(serializers.ModelSerializer):
                 "country":country,
                 "state":state,
                 "city":city,
-                "property_type":property_type
+                "documents_verified_by":documents_verified_by,
+                "property_type":property_type,
+                "documents":documents,
 
 
             }

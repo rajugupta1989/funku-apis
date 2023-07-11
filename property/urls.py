@@ -8,6 +8,7 @@ urlpatterns = [
     path(r'update_profile_image/', views.PropertyProfileImageUpdateAPIView.as_view(), name='update_profile_image'),
     path(r'add_property/', views.AddPropertyAPIView.as_view(), name='add_property'),
     path(r'add_property_web/', views.AddPropertyWebAPIView.as_view(), name='add_property_web'),
+    path(r'property_verify/', views.PropertyVerifyAPIView.as_view(), name='property_verify'),
     path(r'update_property_web/<int:pk>/', views.UpdateDeletePropertyWebAPIView.as_view(), name='update_property_web'),
     path(r'update_property/', views.UpdateDeletePropertyAPIView.as_view(), name='update_property'),
     path(r'add_property_social/', views.AddPropertySocialAPIView.as_view(), name='add_property_social'),

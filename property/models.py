@@ -48,6 +48,13 @@ class UserProperty(CommonAbstractModel):
     long = models.FloatField(blank=True, null=True)
     manager = models.ManyToManyField(User,related_name='manager', blank=True)
     listing_date = models.DateField(blank=True, null=True)
+    document_ferified = models.BooleanField(default=False)
+    documents_verified_date = models.DateField(blank=True, null=True)
+    documents_verified_by = models.ForeignKey(User,on_delete=models.CASCADE, related_name="documents_verified_by",blank=True, null=True)
+    documents = models.ManyToManyField(
+        FileRepo, blank=True, related_name="documents"
+    )
+
 
 class UserPropertyMailVerified(CommonAbstractModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -27,6 +27,7 @@ from django.core.mail import send_mail
 import pytz
 from django.contrib.postgres.search import SearchVector
 from itertools import chain
+from datetime import date
 
 # from django_filters.rest_framework import DjangoFilterBackend
 # from rest_framework import filters
@@ -184,6 +185,61 @@ class AddPropertyAPIView(generics.ListCreateAPIView):
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
         except Exception as e:
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+class PropertyVerifyAPIView(generics.CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserProperty.objects.all()
+    serializer_class = UserPropertySerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            property_id = self.request.data.get("property_id",None)
+            property_status = self.request.data.get("property_status",None)
+            
+            if property_id is not None and property_status is not None:
+                data = UserProperty.objects.get(id=property_id)
+                if data is not None:
+                    data.documents_verified_by_id = self.request.user.id
+                    data.documents_verified_date = date.today()
+                    data.document_ferified = property_status
+                    data.save()
+                    if property_status:
+                        mess = "property successfully verified"
+                    else:
+                        mess = "property successfully unverified"
+                    return Response(
+                        {
+                            "status": True,
+                            "message": mess,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "Property id doed not exist",
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+            else:
+                return Response(
+                        {
+                            "status": False,
+                            "message": "Property id and property status required",
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+        except Exception as e:
+            print(str(e))
             error = {
                 "status": False,
                 "message": "Something Went Wrong",
