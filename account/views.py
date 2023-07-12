@@ -791,7 +791,7 @@ class UserListByIdAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_class = JSONWebTokenAuthentication
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserProfileUpdateSerializer
 
     def get(self, request, *args, **kwargs):
         try:
