@@ -189,7 +189,8 @@ class Verify(generics.CreateAPIView):
                         credentials = {"password": mobile}
                         credentials.update(**kwargs)
                         user = authenticate(**credentials)
-                        user.role.set(['1'])
+                        if user_data is None:
+                            user.role.set(['1'])
                         tokendata = {
                             "token": user.token,
                             "page_count": user.page_count,
