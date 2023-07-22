@@ -48,7 +48,7 @@ class UserProperty(CommonAbstractModel):
     long = models.FloatField(blank=True, null=True)
     manager = models.ManyToManyField(User,related_name='manager', blank=True)
     listing_date = models.DateField(blank=True, null=True)
-    document_ferified = models.BooleanField(default=False)
+    document_verified = models.BooleanField(default=False)
     documents_verified_date = models.DateField(blank=True, null=True)
     documents_verified_by = models.ForeignKey(User,on_delete=models.CASCADE, related_name="documents_verified_by",blank=True, null=True)
     documents = models.ManyToManyField(
@@ -244,3 +244,21 @@ class UserBooking(CommonAbstractModel):
     booking_status = models.BooleanField(default=False)
     booking_status_from_owner = models.BooleanField(default=False)
     date = models.DateTimeField(null=True, blank=True)
+
+
+class UserProfileMatching(CommonAbstractModel):
+    party = models.ForeignKey(Party, on_delete=models.CASCADE,blank=True, null=True)
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE,blank=True, null=True)
+    flash_deal = models.ForeignKey(FlashDealDetail, on_delete=models.CASCADE,blank=True, null=True)
+    sender_code = models.CharField(max_length=200,null=True,)
+    receiver_code = models.CharField(max_length=200,null=True,)
+    thread = models.CharField(max_length=200,null=True,)
+    liked = models.BooleanField(default=False)
+
+
+class UserProfileMatchingEnable(CommonAbstractModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    party = models.ForeignKey(Party, on_delete=models.CASCADE,blank=True, null=True)
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE,blank=True, null=True)
+    flash_deal = models.ForeignKey(FlashDealDetail, on_delete=models.CASCADE,blank=True, null=True)
+    enable = models.BooleanField(default=False)

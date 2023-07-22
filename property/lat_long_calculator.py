@@ -38,3 +38,4 @@ def generate_qr_code (reference):
     img.save(stream)
 
     return stream.getvalue().decode()
+

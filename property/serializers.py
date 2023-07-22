@@ -3,6 +3,8 @@ from account.models import FileRepo, User
 from master.models import PropertyFacilities, music_type
 from property.models import (
     UserBooking,
+    UserProfileMatching,
+    UserProfileMatchingEnable,
     UserPropertyThumb,
     UserProperty,
     PropertyAvailableFacilities,
@@ -297,3 +299,15 @@ class UserBookingSerializer(serializers.ModelSerializer):
             "party":party
         })
         return serializer
+    
+
+class UserProfileMatchingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfileMatching
+        fields = "__all__"
+
+
+class UserProfileMatchingEnableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfileMatchingEnable
+        fields = "__all__"

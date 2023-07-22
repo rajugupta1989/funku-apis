@@ -77,6 +77,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     jwt_secret = models.UUIDField(default=uuid.uuid4)
     role = models.ManyToManyField(Role,blank=True, null=True)
+    profile_image_verifiy = models.BooleanField(default=False)
     first_name = models.CharField(
         _("first name"),
         max_length=30,

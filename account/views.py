@@ -828,3 +828,42 @@ class UserSearchAPIView(generics.ListAPIView):
             error = {'status': False,
                      'message': "Something Went Wrong", "error": str(e)}
             return Response(error, status=status.HTTP_200_OK)
+        
+
+
+class UserRoleChangeAPIView(generics.UpdateAPIView):
+    """
+    Update role
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = User.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            role = self.request.data.get("role", None)
+            user_data = User.objects.get(id=kwargs["pk"])
+            if user_data is not None:
+                if 1 not in role:
+                    default_role = [1]
+                    role = default_role + role
+                user_data.role.set(role)
+                user_data.save()
+                return Response(
+                    {"status": True, "message": "Successfully role changed"}, status=status.HTTP_200_OK
+                )
+
+            else:
+                return Response(
+                    {"status": False, "message": "User does not exist"}, status=status.HTTP_200_OK
+                )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)

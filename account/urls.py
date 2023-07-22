@@ -27,7 +27,8 @@ urlpatterns = [
     # path(r'change-password/', views.ChangePassword.as_view(), name='change-password'),
     # path(r'profile/', views.Profile.as_view(), name='profile'),
     # path(r'logout/', views.Logout.as_view(), name='logout'),
-    path(r'token-refresh/', views.RefreshToken.as_view(), name='refresh-token')
+    path(r'token-refresh/', views.RefreshToken.as_view(), name='refresh-token'),
+    path(r'user_role_change/<int:pk>/', views.UserRoleChangeAPIView.as_view(), name='user_role_change')
 
 ]
 

@@ -27,7 +27,7 @@ from django.core.mail import send_mail
 import pytz
 from django.contrib.postgres.search import SearchVector
 from itertools import chain
-from datetime import date
+from datetime import date ,timedelta
 
 # from django_filters.rest_framework import DjangoFilterBackend
 # from rest_framework import filters
@@ -212,6 +212,22 @@ class PropertyVerifyAPIView(generics.CreateAPIView):
                     data.document_ferified = property_status
                     data.save()
                     if property_status:
+                        user_data = User.objects.get(id=data.user_id)
+                        if user_data is not None:
+                            default_role = user_data.role.all()
+                            role = list(list(default_role) + [7])
+                            user_data.role.set(role)
+                            user_data.save()
+                        else:
+                            return Response(
+                            {
+                                "status": False,
+                                "message": "user does not exist in this property",
+                            },
+                            status=status.HTTP_200_OK,
+                        )
+
+                    if property_status:
                         mess = "property successfully verified"
                     else:
                         mess = "property successfully unverified"
@@ -226,7 +242,7 @@ class PropertyVerifyAPIView(generics.CreateAPIView):
                     return Response(
                         {
                             "status": False,
-                            "message": "Property id doed not exist",
+                            "message": "Property id does not exist",
                         },
                         status=status.HTTP_200_OK,
                     )
@@ -1909,6 +1925,211 @@ class FilterAPIView(generics.ListAPIView):
             result_data["party"] = PartySerializer(party, many=True).data
 
             response = {"status": True, "results": result_data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+
+class UserProfileMatchingAPIView(generics.CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = UserProfileMatching
+    serializer_class = UserProfileMatchingSerializer
+
+    def post(self, request):
+        try: 
+            receiver_user_id = self.request.data.get("receiver_user_id", None)
+            recever = User.objects.get(id=receiver_user_id)
+            receiver_code = recever.mobile
+            sender_code = self.request.user.mobile
+            liked = self.request.data.get("liked", None)
+            party = self.request.data.get("party", None)
+            deal = self.request.data.get("deal", None)
+            flash_deal = self.request.data.get("flash_deal", None)
+            thread_data = sender_code + receiver_code
+            thread_data1 = receiver_code + sender_code
+
+            if (
+                (sender_code is None)
+                or (receiver_code is None)
+                or (liked is None)
+                or (liked == "")
+                or (sender_code == "")
+                or (receiver_code == "")
+            ):
+                dict = {
+                    "status": False,
+                    "message": "Message sender id, receiver id, liked are required",
+                }
+            else:
+                if deal is not None and deal != '':
+                    checkThread = (
+                        UserProfileMatching.objects.filter(
+                            Q(thread=thread_data) | Q(thread=thread_data1), deal_id=deal
+                        )
+                        .values("thread")
+                        .distinct()
+                    )
+                    check_user = UserProfileMatching.objects.filter(
+                            sender_code=sender_code, deal_id=deal
+                        ).last()
+                if flash_deal is not None and flash_deal != '':
+                    checkThread = (
+                        UserProfileMatching.objects.filter(
+                            Q(thread=thread_data) | Q(thread=thread_data1), flash_deal_id=flash_deal
+                        )
+                        .values("thread")
+                        .distinct()
+                    )
+                    check_user = UserProfileMatching.objects.filter(
+                            sender_code=sender_code, flash_deal_id=flash_deal
+                        ).last()
+                if party is not None and party != '':
+                    checkThread = (
+                        UserProfileMatching.objects.filter(
+                            Q(thread=thread_data) | Q(thread=thread_data1), party_id=party
+                        )
+                        .values("thread")
+                        .distinct()
+                    )
+                    check_user = UserProfileMatching.objects.filter(
+                            sender_code=sender_code, party_id=party
+                        ).last()
+                
+                if checkThread:
+                    if check_user is not None:
+                        message_data = check_user
+                    else:
+                        message_data = UserProfileMatching()
+                    message_data.thread = checkThread[0]["thread"]
+                    message_data.sender_code = sender_code
+                    message_data.receiver_code = receiver_code
+                    message_data.liked = liked
+                    message_data.deal_id = deal
+                    message_data.flash_deal_id = flash_deal
+                    message_data.party_id = party
+                    message_data.save()
+                else:
+                    message_data = UserProfileMatching()
+                    message_data.thread = thread_data
+                    message_data.sender_code = sender_code
+                    message_data.receiver_code = receiver_code
+                    message_data.liked = liked
+                    message_data.deal_id = deal
+                    message_data.flash_deal_id = flash_deal
+                    message_data.party_id = party
+                    message_data.save()
+
+                dict = {"status": True, "message": "successfully executed"}
+                return Response(dict, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+        
+
+
+class UserProfileMatchingEnableAPIView(generics.CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = UserProfileMatchingEnable
+    serializer_class = UserProfileMatchingEnableSerializer
+
+    def post(self, request):
+        try: 
+            party = self.request.data.get("party", None)
+            deal = self.request.data.get("deal", None)
+            flash_deal = self.request.data.get("flash_deal", None)
+            enable = self.request.data.get("enable", None)
+            user = self.request.user
+
+            if party is not None and party != '':
+                check = UserProfileMatchingEnable.objects.filter(party_id=party, user=user).last()
+            if deal is not None and deal != '':
+                check = UserProfileMatchingEnable.objects.filter(deal_id=deal, user=user).last()
+            if flash_deal is not None and flash_deal != '':
+                check = UserProfileMatchingEnable.objects.filter(flash_deal_id=flash_deal, user=user).last()
+
+            if check is not None:
+                check.user = user
+                check.enable = enable
+                check.deal_id = deal
+                check.flash_deal_id = flash_deal
+                check.party_id = party
+                check.save()
+            else:
+                check_data = UserProfileMatchingEnable()
+                check_data.user = user
+                check_data.enable = enable
+                check_data.deal_id = deal
+                check_data.flash_deal_id = flash_deal
+                check_data.party_id = party
+                check_data.save()
+            if enable:
+                message = "successfully enabled"
+            else:
+                message = "successfully disabled"
+            dict = {"status": True, "message": message}
+            return Response(dict, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+        
+
+class GetVerifiedUserAPIView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = User.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+
+    def get(self, request):
+        try: 
+            user =self.request.user
+            party = self.request.GET.get("party", None)
+            deal = self.request.GET.get("deal", None)
+            flash_deal = self.request.GET.get("flash_deal", None)
+            current_datetime = datetime.datetime.now()
+            if party is not None and party != '':
+                party_data = Party.objects.get(id=party)
+                if party_data is not None:
+                    user_enable_profile = UserProfileMatchingEnable.objects.filter(party_id=party,enable=True).values_list('user_id',flat=True)
+                    booking_data = UserBooking.objects.filter(party_id=party, user=user,booking_status_from_owner=True).last()
+                    if current_datetime >= booking_data.date.replace(tzinfo=None) and booking_data.date.replace(tzinfo=None) + timedelta(hours=24) >= current_datetime:
+                        user_list = UserBooking.objects.filter(party_id=party, user__profile_image_verifiy=True,user_id__in=user_enable_profile,booking_status_from_owner=True).values_list('user_id',flat=True)
+                    else:
+                        response = {"status": False, "message": "you have expired the time or Party is not conformed from party owner"}
+                        return Response(response, status=status.HTTP_200_OK)
+                else:
+                     response = {"status": False, "message": "Party id is incorrect"} 
+                     return Response(response, status=status.HTTP_200_OK)  
+                
+            if deal is not None and deal != '':
+                queryset = UserBooking.objects.filter(deal_id=deal, user=user,booking_status_from_owner=True).last()
+            if flash_deal is not None and flash_deal != '':
+                queryset = UserBooking.objects.filter(flash_deal_id=flash_deal, user=user,booking_status_from_owner=True).last()
+            
+            if len(user_list)>0:
+                user_master = list(user_list)
+                if self.request.user.id in user_master:
+                    user_master.remove(self.request.user.id)
+                user_data = self.queryset.filter(id__in=user_master)
+                serializer = self.serializer_class(instance=user_data,many=True)
+                response = {
+                    'status': True,'results': serializer.data}
+            else:
+                response = {
+                    'status': True,'results': []}
+
             return Response(response, status=status.HTTP_200_OK)
         except Exception as e:
             error = {
