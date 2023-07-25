@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager, AbstractBa
 import uuid
 import logging
 from django.conf import settings
-from master.models import bar_type, drink_type, gender, music_type
+from master.models import UserMatchingProfileFor, bar_type, drink_type, gender, music_type
 from rest_framework_jwt.settings import api_settings
 from account.lib.auth.manager import UserManager
 from account.utils import verification_mail
@@ -178,7 +178,8 @@ class userProfileDetail(CommonAbstractModel):
     bar = models.ManyToManyField(bar_type,blank=True)
     lat = models.FloatField(blank=True, null=True)
     long = models.FloatField(blank=True, null=True)
-
+    gender_like_to_meet = models.ManyToManyField("master.gender",related_name="gender_like_to_meet",blank=True)
+    profile_matching_for = models.ManyToManyField(UserMatchingProfileFor,blank=True)
 
 class FileRepo(CommonAbstractModel):
 

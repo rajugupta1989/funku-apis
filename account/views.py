@@ -867,3 +867,78 @@ class UserRoleChangeAPIView(generics.UpdateAPIView):
                 "error": str(e),
             }
             return Response(error, status=status.HTTP_200_OK)
+
+
+
+
+class ILikeToMeetAPIView(generics.UpdateAPIView):
+    """
+    I like to meet
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = userProfileDetail.objects.all()
+    serializer_class = userProfileDetailSerializer
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            gender = self.request.data.get("gender",None)
+            user_data = userProfileDetail.objects.get(user=user)
+            if user_data is not None:
+                user_data.gender_like_to_meet.set(gender)
+                user_data.save()
+                return Response(
+                    {"status": True, "message": "Successfully  updated"}, status=status.HTTP_200_OK
+                )
+
+            else:
+                return Response(
+                    {"status": False, "message": "User does not exist"}, status=status.HTTP_200_OK
+                )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+        
+
+
+class ILikeToFindUserForAPIView(generics.UpdateAPIView):
+    """
+    I like to find user for
+    """
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = userProfileDetail.objects.all()
+    serializer_class = userProfileDetailSerializer
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            user_find_for = self.request.data.get("user_find_for",None)
+            user_data = userProfileDetail.objects.get(user=user)
+            if user_data is not None:
+                user_data.profile_matching_for.set(user_find_for)
+                user_data.save()
+                return Response(
+                    {"status": True, "message": "Successfully  updated"}, status=status.HTTP_200_OK
+                )
+
+            else:
+                return Response(
+                    {"status": False, "message": "User does not exist"}, status=status.HTTP_200_OK
+                )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)

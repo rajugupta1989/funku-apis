@@ -28,7 +28,9 @@ urlpatterns = [
     # path(r'profile/', views.Profile.as_view(), name='profile'),
     # path(r'logout/', views.Logout.as_view(), name='logout'),
     path(r'token-refresh/', views.RefreshToken.as_view(), name='refresh-token'),
-    path(r'user_role_change/<int:pk>/', views.UserRoleChangeAPIView.as_view(), name='user_role_change')
+    path(r'user_role_change/<int:pk>/', views.UserRoleChangeAPIView.as_view(), name='user_role_change'),
+    path(r'i_like_to_meet/', views.ILikeToMeetAPIView.as_view(), name='i_like_to_meet'),
+    path(r'i_like_to_find_user_for/', views.ILikeToFindUserForAPIView.as_view(), name='i_like_to_find_user_for')
 
 ]
 

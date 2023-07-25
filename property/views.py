@@ -2138,3 +2138,58 @@ class GetVerifiedUserAPIView(generics.ListAPIView):
                 "error": str(e),
             }
             return Response(error, status=status.HTTP_200_OK)
+        
+
+
+class GetProfileMatchUserForChatAPIView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = User.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+
+    def get(self, request):
+        try: 
+            user =self.request.user
+            party = self.request.GET.get("party", None)
+            deal = self.request.GET.get("deal", None)
+            flash_deal = self.request.GET.get("flash_deal", None)
+            current_datetime = datetime.datetime.now()
+            if party is not None and party != '':
+                party_data = Party.objects.get(id=party)
+                if party_data is not None:
+                    booking_data = UserBooking.objects.filter(party_id=party).last()
+                    if current_datetime >= booking_data.date.replace(tzinfo=None) and booking_data.date.replace(tzinfo=None) + timedelta(hours=24) >= current_datetime:
+                        receiver_code = UserProfileMatching.objects.filter(party_id=party,sender_code=user.mobile).values_list('receiver_code',flat=True)
+                        user_mobile = UserProfileMatching.objects.filter(party_id=party,sender_code=user.mobile,receiver_code__in=receiver_code).values_list('receiver_code',flat=True)
+                        user_list = User.objects.filter(mobile__in=user_mobile).values_list("id",flat=True)
+                    else:
+                        response = {"status": False, "message": "you have expired the time"}
+                        return Response(response, status=status.HTTP_200_OK)
+                else:
+                     response = {"status": False, "message": "Party id is incorrect"} 
+                     return Response(response, status=status.HTTP_200_OK)  
+                
+            if deal is not None and deal != '':
+                queryset = UserBooking.objects.filter(deal_id=deal, user=user,booking_status_from_owner=True).last()
+            if flash_deal is not None and flash_deal != '':
+                queryset = UserBooking.objects.filter(flash_deal_id=flash_deal, user=user,booking_status_from_owner=True).last()
+            
+            if len(user_list)>0:
+                user_master = list(user_list)
+                if self.request.user.id in user_master:
+                    user_master.remove(self.request.user.id)
+                user_data = self.queryset.filter(id__in=user_master)
+                serializer = self.serializer_class(instance=user_data,many=True)
+                response = {
+                    'status': True,'results': serializer.data}
+            else:
+                response = {
+                    'status': True,'results': []}
+
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)

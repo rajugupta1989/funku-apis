@@ -19,7 +19,8 @@ from master.models import (
     BrandType,
     DealType,
     EntryType,
-    Occasion
+    Occasion,
+    UserMatchingProfileFor
 )
 
 
@@ -141,3 +142,12 @@ class OccasionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Occasion
         fields = "__all__"
+
+
+class UserMatchingProfileForSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserMatchingProfileFor
+        fields = "__all__"
+
+
+        

@@ -94,11 +94,15 @@ class userProfileDetailSerializer(serializers.ModelSerializer):
         drink = instance.drink.all().values("id", "name","image")
         bar = instance.bar.all().values("id", "name","image")
         gender = genderSerializer(instance.gender).data
+        profile_matching_for = instance.profile_matching_for.all().values("id","name")
+        gender_like_to_meet = instance.gender_like_to_meet.all().values("id","name")
         serializer.update({
             "music": music,
             "drink": drink,
             "bar": bar,
-            "gender":gender
+            "gender":gender,
+            "gender_like_to_meet":gender_like_to_meet,
+            "profile_matching_for":profile_matching_for
         })
         return serializer
 

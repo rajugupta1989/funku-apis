@@ -859,3 +859,53 @@ class OccasionAPIView(generics.ListCreateAPIView):
                 "error": str(e),
             }
             return Response(error, status=status.HTTP_200_OK)
+        
+
+class UserMatchingProfileForAPIView(generics.ListCreateAPIView):
+    """
+     Matching profile for
+    """
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+    queryset = UserMatchingProfileFor.objects.all()
+    serializer_class = UserMatchingProfileForSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid(raise_exception=False):
+                serializer.save()
+                return Response(
+                    {"status": True, "results": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {"status": False, "error": serializer.errors}, status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)
+
+
+    def get(self, request, *args, **kwargs):
+        try:
+            queryset = self.get_queryset()
+            response = self.serializer_class(instance=queryset, many=True)
+            response = {"status": True, "results": response.data}
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(str(e))
+            error = {
+                "status": False,
+                "message": "Something Went Wrong",
+                "error": str(e),
+            }
+            return Response(error, status=status.HTTP_200_OK)

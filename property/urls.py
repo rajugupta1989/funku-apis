@@ -47,6 +47,7 @@ urlpatterns = [
     path('user_profile_matching/', views.UserProfileMatchingAPIView.as_view(), name='user_profile_matching'),
     path('user_profile_matching_enable/', views.UserProfileMatchingEnableAPIView.as_view(), name='user_profile_matching_enable'),
     path('get_verified_user/', views.GetVerifiedUserAPIView.as_view(), name='get_verified_user'),
+    path('get_profile_match_user_for_chat/', views.GetProfileMatchUserForChatAPIView.as_view(), name='get_profile_match_user_for_chat'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL,
