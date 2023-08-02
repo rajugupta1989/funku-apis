@@ -2100,12 +2100,16 @@ class GetVerifiedUserAPIView(generics.ListAPIView):
             flash_deal = self.request.GET.get("flash_deal", None)
             current_datetime = datetime.datetime.now()
             if party is not None and party != '':
-                party_data = Party.objects.get(id=party)
+                party_data = Party.objects.filter(id=party).last()
                 if party_data is not None:
                     user_enable_profile = UserProfileMatchingEnable.objects.filter(party_id=party,enable=True).values_list('user_id',flat=True)
                     booking_data = UserBooking.objects.filter(party_id=party, user=user,booking_status_from_owner=True).last()
-                    if current_datetime >= booking_data.date.replace(tzinfo=None) and booking_data.date.replace(tzinfo=None) + timedelta(hours=24) >= current_datetime:
-                        user_list = UserBooking.objects.filter(party_id=party, user__profile_image_verifiy=True,user_id__in=user_enable_profile,booking_status_from_owner=True).values_list('user_id',flat=True)
+                    if booking_data is not None:
+                        if current_datetime >= booking_data.date.replace(tzinfo=None) and booking_data.date.replace(tzinfo=None) + timedelta(hours=24) >= current_datetime:
+                            user_list = UserBooking.objects.filter(party_id=party, user__profile_image_verifiy=True,user_id__in=user_enable_profile,booking_status_from_owner=True).values_list('user_id',flat=True)
+                        else:
+                            response = {"status": False, "message": "you have expired the time or Party is not conformed from party owner"}
+                            return Response(response, status=status.HTTP_200_OK)
                     else:
                         response = {"status": False, "message": "you have expired the time or Party is not conformed from party owner"}
                         return Response(response, status=status.HTTP_200_OK)
