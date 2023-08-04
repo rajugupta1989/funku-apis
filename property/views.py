@@ -1976,7 +1976,7 @@ class UserProfileMatchingAPIView(generics.CreateAPIView):
                         .distinct()
                     )
                     check_user = UserProfileMatching.objects.filter(
-                            sender_code=sender_code, deal_id=deal
+                            sender_code=sender_code,receiver_code=receiver_code, deal_id=deal
                         ).last()
                 if flash_deal is not None and flash_deal != '':
                     checkThread = (
@@ -1987,7 +1987,7 @@ class UserProfileMatchingAPIView(generics.CreateAPIView):
                         .distinct()
                     )
                     check_user = UserProfileMatching.objects.filter(
-                            sender_code=sender_code, flash_deal_id=flash_deal
+                            sender_code=sender_code,receiver_code=receiver_code, flash_deal_id=flash_deal
                         ).last()
                 if party is not None and party != '':
                     checkThread = (
@@ -1998,7 +1998,7 @@ class UserProfileMatchingAPIView(generics.CreateAPIView):
                         .distinct()
                     )
                     check_user = UserProfileMatching.objects.filter(
-                            sender_code=sender_code, party_id=party
+                            sender_code=sender_code,receiver_code=receiver_code, party_id=party
                         ).last()
                 
                 if checkThread:
@@ -2014,6 +2014,32 @@ class UserProfileMatchingAPIView(generics.CreateAPIView):
                     message_data.flash_deal_id = flash_deal
                     message_data.party_id = party
                     message_data.save()
+                    if deal is not None and deal != '':
+                        match_pro = UserProfileMatching.objects.filter(
+                            thread=checkThread[0]["thread"], deal_id=deal,liked=True
+                        ).count()
+                        if match_pro == 2:
+                            matched_status = True
+                        else:
+                            matched_status = False
+                    if flash_deal is not None and flash_deal != '':
+                        match_pro = UserProfileMatching.objects.filter(
+                            thread=checkThread[0]["thread"], flash_deal_id=flash_deal,liked=True
+                        ).count()
+                        if match_pro == 2:
+                            matched_status = True
+                        else:
+                            matched_status = False
+                    if party is not None and party != '':
+                        match_pro = UserProfileMatching.objects.filter(
+                            thread=checkThread[0]["thread"], party_id=party,liked=True
+                        ).count()
+                        if match_pro == 2:
+                            matched_status = True
+                        else:
+                            matched_status = False
+
+
                 else:
                     message_data = UserProfileMatching()
                     message_data.thread = thread_data
@@ -2024,8 +2050,9 @@ class UserProfileMatchingAPIView(generics.CreateAPIView):
                     message_data.flash_deal_id = flash_deal
                     message_data.party_id = party
                     message_data.save()
+                    matched_status = False
 
-                dict = {"status": True, "message": "successfully executed"}
+                dict = {"status": True, "message": "successfully executed","matched_status":matched_status}
                 return Response(dict, status=status.HTTP_200_OK)
         except Exception as e:
             error = {
