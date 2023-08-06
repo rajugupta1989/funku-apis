@@ -209,7 +209,7 @@ class PropertyVerifyAPIView(generics.CreateAPIView):
                 if data is not None:
                     data.documents_verified_by_id = self.request.user.id
                     data.documents_verified_date = date.today()
-                    data.document_ferified = property_status
+                    data.document_verified = property_status
                     data.save()
                     if property_status:
                         user_data = User.objects.get(id=data.user_id)
@@ -361,10 +361,12 @@ class AddPropertyWebAPIView(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
+            user = self.request.user
             if "Super Admin" in list(self.request.user.role.all().values_list('name',flat=True)):
                 profile = self.queryset.all()
+            elif "Club Manager" in list(self.request.user.role.all().values_list('name',flat=True)):
+                profile = self.queryset.filter(manager_id=user.id)
             else:
-                user = self.request.user
                 profile = self.queryset.filter(user=user.id)
             response = self.serializer_class(profile, many=True)
             response = {"status": True, "results": response.data}
