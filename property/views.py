@@ -374,7 +374,7 @@ class AddPropertyWebAPIView(generics.ListCreateAPIView):
         except Exception as e:
             error = {
                 "status": False,
-                "message": "Something Went Wrong",
+                "message": " Something Went Wrong",
                 "error": str(e),
             }
             return Response(error, status=status.HTTP_200_OK)
